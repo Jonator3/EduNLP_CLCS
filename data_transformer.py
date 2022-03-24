@@ -12,8 +12,6 @@ writer = csv.writer(open("data/de.csv", "w"))
 reader.__next__()
 writer.writerow(head)
 for row in reader:
-    if int(row[0]) < 633:
-        continue
     data = "de"+row[0], row[1], row[2], row[4], "de", translator.translate(row[4])
     time.sleep(0.1)
     print("de", row[0])
