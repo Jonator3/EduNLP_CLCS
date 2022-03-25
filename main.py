@@ -1,3 +1,24 @@
+from typing import List
+
+import sklearn
+from sklearn import svm
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics import f1_score, accuracy_score
+import pickle
+import csv
+
+import preprocessing
+
+
+class CrossLingualDataEntry(object):
+
+    def __init__(self, id, lang, set, gold_score, og_text, en_text):
+        self.id = id
+        self.lang = lang
+        self.set = int(set)
+        self.gold_score = int(gold_score)
+        self.og_text = og_text
+        self.en_text = en_text
 
 
 class CrossLingualContendScoring(object):
@@ -84,5 +105,4 @@ if __name__ == "__main__":
     de_val = validate(svm, de_test)
     print_validation(de_val)
     print("")
-
 
