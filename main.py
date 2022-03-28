@@ -1,3 +1,4 @@
+import os.path
 from typing import List
 
 import sklearn
@@ -79,6 +80,26 @@ def print_validation(mat):
     print("\t|", "0\t\t|", "1\t\t|", "2\t\t|", "3")
     for g, pre in enumerate(mat):
         print(g, "\t|", pre[0], "\t|", pre[1], "\t|", pre[2], "\t|", pre[3])
+    print("kappa =", round(calc_kappa(mat), 3))
+    print("")
+
+
+def calc_kappa(mat):
+    n = len(mat)
+    total = 0
+    p0 = 0
+    pe = 0
+    for i in range(n):
+        p0 += mat[i][i]
+        temp = sum(mat[i])
+        total += temp
+        pe += temp + sum([mat[m][i] for m in range(n)])
+    p0 = p0/total
+    pe = pe/(total**2)
+    kappa = (p0 - pe) / (1 - pe)
+    return kappa
+
+
 
 
 if __name__ == "__main__":
@@ -87,11 +108,17 @@ if __name__ == "__main__":
     de_test = load_data("data/de.csv")
     es_test = load_data("data/es.csv")
 
-    vocabulary = get_vocabulary(en_test, en_train, de_test, es_test)
-    preproc = [preprocessing.lower]
-    svm = CrossLingualContendScoring(en_train, vocabulary, preproc)
-    pickle.dump(svm, open("en_only.clcs", "wb"))  # save the svm to file
-    print("Training Done!")
+    file_name = "en_only.clcs"
+    svm = None
+    if os.path.isfile(file_name):
+        svm = pickle.load(open(file_name, "rb"))
+        print("loading done")
+    else:
+        vocabulary = get_vocabulary(en_test, en_train, de_test, es_test)
+        preproc = [preprocessing.lower]
+        svm = CrossLingualContendScoring(en_train, vocabulary, preproc)
+        pickle.dump(svm, open("en_only.clcs", "wb"))  # save the svm to file
+        print("Training Done!")
 
     print("English:")
     en_val = validate(svm, en_test)
