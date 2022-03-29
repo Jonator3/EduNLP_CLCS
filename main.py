@@ -106,30 +106,35 @@ if __name__ == "__main__":
     en_train = load_data("data/en_train.csv")
     en_test = load_data("data/en_test.csv")
     de_test = load_data("data/de.csv")
+    de_train = de_test[len(de_test)//10:]
+    de_test = de_test[:(len(de_test)//10) - 1]
     es_test = load_data("data/es.csv")
+    es_train = es_test[len(es_test)//10:]
+    es_test = es_test[:(len(es_test)//10) - 1]
 
-    file_name = "en_only.clcs"
-    svm = None
+    file_name = "all_lang.clcs"
+    svc = None
     if os.path.isfile(file_name):
-        svm = pickle.load(open(file_name, "rb"))
+        svc = pickle.load(open(file_name, "rb"))
         print("loading done")
     else:
-        vocabulary = get_vocabulary(en_test, en_train, de_test, es_test)
+        train = en_train + de_train + es_train
+        vocabulary = get_vocabulary(train)
         preproc = [preprocessing.lower]
-        svm = CrossLingualContendScoring(en_train, vocabulary, preproc)
-        pickle.dump(svm, open("en_only.clcs", "wb"))  # save the svm to file
+        svc = CrossLingualContendScoring(train, vocabulary, preproc)
+        pickle.dump(svc, open(file_name, "wb"))  # save the svm to file
         print("Training Done!")
 
     print("English:")
-    en_val = validate(svm, en_test)
+    en_val = validate(svc, en_test)
     print_validation(en_val)
     print("")
     print("Spanish:")
-    es_val = validate(svm, es_test)
+    es_val = validate(svc, es_test)
     print_validation(es_val)
     print("")
     print("German:")
-    de_val = validate(svm, de_test)
+    de_val = validate(svc, de_test)
     print_validation(de_val)
     print("")
 
