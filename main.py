@@ -33,10 +33,35 @@ class CrossLingualContendScoring(object):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
         self.svc = svm.SVC()
-        self.svc.fit(count_matrix, [data_entry.gold_score for data_entry in trainingset])
+
+
+    def train(self, trainingset, kfold=False, verbose=False):
+        if self.vocab is None:
+            self.vocab = get_vocabulary(trainingset)
+        if kfold:
+            kf = KFold(n_splits=10, shuffle=True)
+            i = 1
+            for train_index, test_index in kf.split(trainingset):
+                X_train = self.__create_features([trainingset[i] for i in train_index])
+                X_test = self.__create_features([trainingset[i] for i in test_index])
+                y_train = [trainingset[i].gold_score for i in train_index]
+                y_test = [trainingset[i].gold_score for i in test_index]
+
+                # Train the model
+                self.svc.fit(X_train, y_train)  # Training the model
+                if verbose:
+                    print(f"Fold no. {i}")
+                    print(f"Accuracy = {accuracy_score(y_test, self.svc.predict(X_test))}")
+                    print(f"Kappa = {cohen_kappa_score(y_test, self.svc.predict(X_test), weights='quadratic')}")
+                i += 1
+        else:
+            count_matrix = self.__create_features(trainingset)
+            y = [data_entry.gold_score for data_entry in trainingset]
+            self.svc.fit(count_matrix, y)
 
     def __create_features(self, data: List[CrossLingualDataEntry]):
-        count_matrix = self.vocab.transform([preprocessing.compose(*self.preprocessing)(data_entry.en_text) for data_entry in data])
+        count_matrix = self.vocab.transform(
+            [preprocessing.compose(*self.preprocessing)(data_entry.en_text) for data_entry in data])
         return count_matrix
 
     def predict(self, data: CrossLingualDataEntry) -> int:
