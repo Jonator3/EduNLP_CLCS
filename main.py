@@ -5,7 +5,8 @@ from typing import List
 import sklearn
 from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import f1_score, accuracy_score, cohen_kappa_score, make_scorer
+from sklearn.model_selection import cross_val_score, cross_validate, KFold
 import pickle
 import csv
 
@@ -28,12 +29,9 @@ class CrossLingualDataEntry(object):
 
 class CrossLingualContendScoring(object):
 
-    def __init__(self, trainingset, preprocessing=[], vocabulary=None):
+    def __init__(self, preprocessing=[], vocabulary=None):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
-        if vocabulary is None:
-            self.vocab = get_vocabulary(trainingset)
-        count_matrix = self.__create_features(trainingset)
         self.svc = svm.SVC()
         self.svc.fit(count_matrix, [data_entry.gold_score for data_entry in trainingset])
 
@@ -66,17 +64,14 @@ def load_data(input_path: str) -> List[CrossLingualDataEntry]:
 
 
 def validate(svm, dataset: List[CrossLingualDataEntry]):
-    mat = []
-    for i1 in range(4):
-        row = []
-        for i2 in range(4):
-            row.append(0)
-        mat.append(row)
+    predict = []
+    gold = []
     for data in dataset:
-        predict = svm.predict(data)
-        gold = data.gold_score
-        mat[gold][predict] += 1
-    return mat
+        p = svm.predict(data)
+        g = data.gold_score
+        predict.append(p)
+        gold.append(g)
+    return gold, predict
 
 
 def get_vocabulary(*datasets):
@@ -89,45 +84,20 @@ def get_vocabulary(*datasets):
     return vocab
 
 
-def print_validation(mat):
+def print_validation(gold, predict):
+    mat = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+    for i in range(len(gold)):
+        g = gold[i]
+        p = predict[i]
+        mat[g][p] += 1
     print("Gold/\tPrediction")
     print("\t|", "0\t\t|", "1\t\t|", "2\t\t|", "3")
     for g, pre in enumerate(mat):
         print(g, "\t|", pre[0], "\t|", pre[1], "\t|", pre[2], "\t|", pre[3])
-    print("kappa =", round(calc_kappa(mat), 3))
-    print("acc =", round(calc_acc(mat), 3))
+    print("--------------------------------------")
+    print("quadratic_kappa =", round(cohen_kappa_score(gold, predict, weights="quadratic"), 3))
+    print("accuracy =", round(accuracy_score(gold, predict), 3))
     print("")
-
-
-def calc_acc(mat):
-    n = len(mat)
-    total = 0
-    p0 = 0
-    for i in range(n):
-        p0 += mat[i][i]
-        temp = sum(mat[i])
-        total += temp
-    if total == 0:
-        return -1
-    return p0 / total
-
-
-def calc_kappa(mat):
-    n = len(mat)
-    total = 0
-    p0 = 0
-    pe = 0
-    for i in range(n):
-        p0 += mat[i][i]
-        temp = sum(mat[i])
-        total += temp
-        pe += temp + sum([mat[m][i] for m in range(n)])
-    if total == 0:
-        return -1
-    p0 = p0/total
-    pe = pe/(total**2)
-    kappa = (p0 - pe) / (1 - pe)
-    return kappa
 
 
 def separate_set(dataset: List[CrossLingualDataEntry]):
@@ -137,23 +107,20 @@ def separate_set(dataset: List[CrossLingualDataEntry]):
     return output
 
 
-def main_make_svc():
+def main(ignore_en_only_prompt=False):
     en_train = separate_set(load_data("data/en_train.csv"))
     en_test = separate_set(load_data("data/en_test.csv"))
     de_test = separate_set(load_data("data/de.csv"))
     es_test = separate_set(load_data("data/es.csv"))
-    de_train = [[], [], [], [], [], [], [], [], [], []]
-    for set in range(10):
-        de_train[set] = de_test[set][len(de_test[set]) // 10:]
-        de_test[set] = de_test[set][:(len(de_test[set]) // 10) + 1]
-    es_train = [[], [], [], [], [], [], [], [], [], []]
-    for set in range(10):
-        es_train[set] = es_test[set][len(es_test[set]) // 10:]
-        es_test[set] = es_test[set][:(len(es_test[set]) // 10) + 1]
+    de_train = de_test.copy()
+    es_train = es_test.copy()
 
     for set in range(10):
+        if ignore_en_only_prompt:
+            if not [0, 1, 9].__contains__(set):
+                continue
         print("Training set", set + 1)
-        file_name = f"all_lang_{str(set + 1)}.clcs"
+        file_name = f"only_en_{str(set + 1)}.clcs"
         svc = None
         if os.path.isfile(file_name):
             print("File found")
@@ -161,73 +128,29 @@ def main_make_svc():
             print("loading done")
         else:
             print("no File found")
-            train = en_train[set] + de_train[set] + es_train[set]
             preproc = [preprocessing.lower]
-            svc = CrossLingualContendScoring(train, preproc)
+            svc = CrossLingualContendScoring(preproc)
+            svc.train(en_train[set])
+            #svc.train(de_train[set] + es_train[set], kfold=True)
             pickle.dump(svc, open(file_name, "wb"))  # save the svm to file
             print("Training Done!")
+            print("")
 
+        gold, predict = validate(svc, en_test[set])
         print("English:")
-        en_val = validate(svc, en_test[set])
-        print_validation(en_val)
+        print_validation(gold, predict)
+
+        gold, predict = validate(svc, es_test[set])
         print("Spanish:")
-        es_val = validate(svc, es_test[set])
-        print_validation(es_val)
+        print_validation(gold, predict)
+
+        gold, predict = validate(svc, de_test[set])
         print("German:")
-        de_val = validate(svc, de_test[set])
-        print_validation(de_val)
+        print_validation(gold, predict)
         print("")
-
-def main_eval_total():
-    en_train = separate_set(load_data("data/en_train.csv"))
-    en_test = load_data("data/en_test.csv")
-    de_data = separate_set(load_data("data/de.csv"))
-    es_data = separate_set(load_data("data/es.csv"))
-    de_test = []
-    de_train = [[], [], [], [], [], [], [], [], [], []]
-    for set in range(10):
-        de_train[set] = de_data[set][len(de_data[set]) // 10:]
-        de_test.extend(de_data[set][:(len(de_data[set]) // 10) + 1])
-    es_test = []
-    es_train = [[], [], [], [], [], [], [], [], [], []]
-    for set in range(10):
-        es_train[set] = es_data[set][len(es_data[set]) // 10:]
-        es_test.extend(es_data[set][:(len(es_data[set]) // 10) + 1])
-
-    clcs_set = []
-    for set in range(10):
-        print("Training set", set + 1)
-        file_name = f"all_lang_{str(set + 1)}.clcs"
-        svc = None
-        if os.path.isfile(file_name):
-            print("File found")
-            svc = pickle.load(open(file_name, "rb"))
-            print("loading done")
-        else:
-            print("no File found")
-            train = en_train[set] + de_train[set] + es_train[set]
-            preproc = [preprocessing.lower]
-            svc = CrossLingualContendScoring(train, preproc)
-            pickle.dump(svc, open(file_name, "wb"))  # save the svm to file
-            print("Training Done!")
-        clcs_set.append(svc)
-    svc = Combined_CLCS(clcs_set, lambda d: d.set-1)
-
-    print("English:")
-    en_val = validate(svc, en_test)
-    print_validation(en_val)
-    print("Spanish:")
-    es_val = validate(svc, es_test)
-    print_validation(es_val)
-    print("German:")
-    de_val = validate(svc, de_test)
-    print_validation(de_val)
-    print("")
-    print("Total:")
-    t_val = validate(svc, de_test + es_test + en_test)
-    print_validation(t_val)
-    print("")
 
 
 if __name__ == "__main__":
-    main_eval_total()
+    main(
+        ignore_en_only_prompt=True
+    )
