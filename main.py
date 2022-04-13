@@ -29,15 +29,17 @@ class CrossLingualDataEntry(object):
 
 class CrossLingualContendScoring(object):
 
-    def __init__(self, preprocessing=[], vocabulary=None):
+    def __init__(self, preprocessing=[], lang="en", vocabulary=None):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
         self.svc = svm.SVC()
+        self.lang = lang
 
 
     def train(self, trainingset, kfold=False, verbose=False):
         if self.vocab is None:
-            self.vocab = get_vocabulary(trainingset)
+            self.vocab = get_vocabulary(trainingset, lang=self.lang)
+        eval = [[], []]
         if kfold:
             kf = KFold(n_splits=10, shuffle=True)
             i = 1
@@ -49,19 +51,35 @@ class CrossLingualContendScoring(object):
 
                 # Train the model
                 self.svc.fit(X_train, y_train)  # Training the model
+
+                # Test model
+                predict = self.svc.predict(X_test)
+                eval[1] += y_test
+                eval[0] += list(predict)
                 if verbose:
                     print(f"Fold no. {i}")
-                    print(f"Accuracy = {accuracy_score(y_test, self.svc.predict(X_test))}")
-                    print(f"Kappa = {cohen_kappa_score(y_test, self.svc.predict(X_test), weights='quadratic')}")
+                    print(f"Accuracy = {accuracy_score(y_test, predict)}")
+                    print(f"Kappa = {cohen_kappa_score(y_test, predict, weights='quadratic')}")
+                    """ Die Validierung hier ergibt für mich keinen sin und ich weis nicht wie sie zu fixen ist """
+                    # TODO ---------------------------------------------------------------------------------------------
                 i += 1
+            return eval[0], eval[1]
         else:
             count_matrix = self.__create_features(trainingset)
             y = [data_entry.gold_score for data_entry in trainingset]
             self.svc.fit(count_matrix, y)
+            return [], []
 
     def __create_features(self, data: List[CrossLingualDataEntry]):
+        langgraber = lambda x: x.og_text
+        if self.lang == "en":
+            langgraber = lambda x: x.en_text
+        if self.lang == "de":
+            langgraber = lambda x: x.de_text
+        if self.lang == "es":
+            langgraber = lambda x: x.es_text
         count_matrix = self.vocab.transform(
-            [preprocessing.compose(*self.preprocessing)(data_entry.en_text) for data_entry in data])
+            [preprocessing.compose(*self.preprocessing)(langgraber(data_entry)) for data_entry in data])
         return count_matrix
 
     def predict(self, data: CrossLingualDataEntry) -> int:
@@ -99,13 +117,20 @@ def validate(svm, dataset: List[CrossLingualDataEntry]):
     return gold, predict
 
 
-def get_vocabulary(*datasets):
+def get_vocabulary(*datasets, lang="en"):
+    langgraber = lambda x: x.og_text
+    if lang == "en":
+        langgraber = lambda x: x.en_text
+    if lang == "de":
+        langgraber = lambda x: x.de_text
+    if lang == "es":
+        langgraber = lambda x: x.es_text
     set = []
     for d in datasets:
         set.extend(d.copy())
 
     vocab = CountVectorizer(analyzer='word', ngram_range=(1, 3))
-    vocab.fit([data.en_text for data in set])
+    vocab.fit([langgraber(data) for data in set])
     return vocab
 
 
@@ -140,38 +165,30 @@ def main(ignore_en_only_prompt=False):
     de_train = de_test.copy()
     es_train = es_test.copy()
 
+    lang = "en"
+
     for set in range(10):
         if ignore_en_only_prompt:
             if not [0, 1, 9].__contains__(set):
                 continue
         print("Training set", set + 1)
-        file_name = f"only_en_{str(set + 1)}.clcs"
-        svc = None
-        if os.path.isfile(file_name):
-            print("File found")
-            svc = pickle.load(open(file_name, "rb"))
-            print("loading done")
-        else:
-            print("no File found")
-            preproc = [preprocessing.lower]
-            svc = CrossLingualContendScoring(preproc)
-            svc.train(en_train[set])
-            #svc.train(de_train[set] + es_train[set], kfold=True)
-            pickle.dump(svc, open(file_name, "wb"))  # save the svm to file
-            print("Training Done!")
-            print("")
 
+        preproc = [preprocessing.lower]
+        vocab = get_vocabulary(en_train[set], lang=lang)
+        svc = CrossLingualContendScoring(preproc, lang, vocab)
+        svc.train(en_train[set])
         gold, predict = validate(svc, en_test[set])
         print("English:")
         print_validation(gold, predict)
 
-        gold, predict = validate(svc, es_test[set])
+        predict, gold = svc.train(de_train[set], kfold=True)
+        print("German:")
+        print_validation(gold, predict)
+
+        predict, gold = svc.train(es_train[set], kfold=True, verbose=True)
         print("Spanish:")
         print_validation(gold, predict)
 
-        gold, predict = validate(svc, de_test[set])
-        print("German:")
-        print_validation(gold, predict)
         print("")
 
 
