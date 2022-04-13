@@ -165,7 +165,7 @@ def main(ignore_en_only_prompt=False):
     de_train = de_test.copy()
     es_train = es_test.copy()
 
-    lang = "en"
+    lang = "og"
 
     for set in range(10):
         if ignore_en_only_prompt:
@@ -181,10 +181,12 @@ def main(ignore_en_only_prompt=False):
         print("English:")
         print_validation(gold, predict)
 
+        svc = CrossLingualContendScoring(preproc, lang, vocab)
         predict, gold = svc.train(de_train[set], kfold=True)
         print("German:")
         print_validation(gold, predict)
 
+        svc = CrossLingualContendScoring(preproc, lang, vocab)
         predict, gold = svc.train(es_train[set], kfold=True, verbose=True)
         print("Spanish:")
         print_validation(gold, predict)
