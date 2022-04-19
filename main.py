@@ -4,7 +4,10 @@ from typing import List
 
 import sklearn
 from sklearn import svm
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.pipeline import FeatureUnion
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, accuracy_score, cohen_kappa_score, make_scorer
 from sklearn.model_selection import cross_val_score, cross_validate, KFold
 import pickle
@@ -129,7 +132,9 @@ def get_vocabulary(*datasets, lang="en"):
     for d in datasets:
         set.extend(d.copy())
 
-    vocab = CountVectorizer(analyzer='word', ngram_range=(1, 3))
+    wcv = CountVectorizer(analyzer='word', ngram_range=(1, 3))
+    ccv = CountVectorizer(analyzer='char', ngram_range=(2, 5))
+    vocab = FeatureUnion([('word_ngram_counts', wcv), ('char_ngram_counts', ccv)])
     vocab.fit([langgraber(data) for data in set])
     return vocab
 
@@ -187,7 +192,7 @@ def main(ignore_en_only_prompt=False):
         print_validation(gold, predict)
 
         svc = CrossLingualContendScoring(preproc, lang, vocab)
-        predict, gold = svc.train(es_train[set], kfold=True, verbose=True)
+        predict, gold = svc.train(es_train[set], kfold=True)
         print("Spanish:")
         print_validation(gold, predict)
 
