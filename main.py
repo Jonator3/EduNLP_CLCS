@@ -35,7 +35,9 @@ class CrossLingualContendScoring(object):
     def __init__(self, preprocessing=[], lang="en", vocabulary=None):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
-        self.svc = svm.SVC()
+        # TODO parameter for classifier
+        self.svc = LogisticRegression()
+        # self.svc = svm.SVC()
         self.lang = lang
 
 
