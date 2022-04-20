@@ -3,4 +3,4 @@
 /data/
 /deepl.auth
 /*.clcs
-/test.py
+/test*

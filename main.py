@@ -170,7 +170,12 @@ def main(ignore_en_only_prompt=False):
     de_train = de_test.copy()
     es_train = es_test.copy()
 
-    lang = "og"
+    en_train_300 = en_train.copy()
+    for i, set in enumerate(en_train_300):
+        s = set.copy()
+        en_train_300[i] = s[:300]
+
+    lang = "en"
 
     for set in range(10):
         if ignore_en_only_prompt:
@@ -180,10 +185,17 @@ def main(ignore_en_only_prompt=False):
 
         preproc = [preprocessing.lower]
         vocab = get_vocabulary(en_train[set], lang=lang)
+
+        """
         svc = CrossLingualContendScoring(preproc, lang, vocab)
         svc.train(en_train[set])
         gold, predict = validate(svc, en_test[set])
         print("English:")
+        print_validation(gold, predict)
+        
+        svc = CrossLingualContendScoring(preproc, lang, vocab)
+        predict, gold = svc.train(en_train_300[set], kfold=True)
+        print("English 300:")
         print_validation(gold, predict)
 
         svc = CrossLingualContendScoring(preproc, lang, vocab)
@@ -194,6 +206,17 @@ def main(ignore_en_only_prompt=False):
         svc = CrossLingualContendScoring(preproc, lang, vocab)
         predict, gold = svc.train(es_train[set], kfold=True)
         print("Spanish:")
+        print_validation(gold, predict)
+        """
+
+        svc = CrossLingualContendScoring(preproc, lang, vocab)
+        svc.train(en_train_300[set])
+
+        gold, predict = validate(svc, de_test[set])
+        print("DE:")
+        print_validation(gold, predict)
+        gold, predict = validate(svc, es_test[set])
+        print("ES:")
         print_validation(gold, predict)
 
         print("")
