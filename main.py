@@ -1,4 +1,5 @@
 import os.path
+import random
 import sys
 from typing import List
 
@@ -32,14 +33,14 @@ class CrossLingualDataEntry(object):
 
 class CrossLingualContendScoring(object):
 
-    def __init__(self, preprocessing=[], lang="en", vocabulary=None):
+    def __init__(self, preprocessing=[], lang="en", vocabulary=None, use_LogRes=False):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
-        # TODO parameter for classifier
-        self.svc = LogisticRegression()
-        # self.svc = svm.SVC()
+        if use_LogRes:
+            self.svc = LogisticRegression(max_iter=1000)
+        else:
+            self.svc = svm.SVC()
         self.lang = lang
-
 
     def train(self, trainingset, kfold=False, verbose=False):
         if self.vocab is None:
@@ -65,8 +66,6 @@ class CrossLingualContendScoring(object):
                     print(f"Fold no. {i}")
                     print(f"Accuracy = {accuracy_score(y_test, predict)}")
                     print(f"Kappa = {cohen_kappa_score(y_test, predict, weights='quadratic')}")
-                    """ Die Validierung hier ergibt für mich keinen sin und ich weis nicht wie sie zu fixen ist """
-                    # TODO ---------------------------------------------------------------------------------------------
                 i += 1
             return eval[0], eval[1]
         else:
@@ -164,7 +163,7 @@ def separate_set(dataset: List[CrossLingualDataEntry]):
     return output
 
 
-def main(ignore_en_only_prompt=False):
+def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False):
     en_train = separate_set(load_data("data/en_train.csv"))
     en_test = separate_set(load_data("data/en_test.csv"))
     de_test = separate_set(load_data("data/de.csv"))
@@ -172,10 +171,13 @@ def main(ignore_en_only_prompt=False):
     de_train = de_test.copy()
     es_train = es_test.copy()
 
-    en_train_300 = en_train.copy()
-    for i, set in enumerate(en_train_300):
-        s = set.copy()
-        en_train_300[i] = s[:300]
+    en_train_300 = []
+    for n in range(subset_passes):
+        en_train_300.append(en_train.copy())
+        for i, set in enumerate(en_train_300[n]):
+            s = set.copy()
+            random.shuffle(s)
+            en_train_300[n][i] = s[:300]
 
     lang = "en"
 
@@ -211,20 +213,43 @@ def main(ignore_en_only_prompt=False):
         print_validation(gold, predict)
         """
 
-        svc = CrossLingualContendScoring(preproc, lang, vocab)
-        svc.train(en_train_300[set])
+        eng = []
+        enp = []
+        deg = []
+        dep = []
+        esg = []
+        esp = []
 
-        gold, predict = validate(svc, de_test[set])
-        print("DE:")
-        print_validation(gold, predict)
-        gold, predict = validate(svc, es_test[set])
-        print("ES:")
-        print_validation(gold, predict)
+        for data in en_train_300:
+            svc = CrossLingualContendScoring(preproc, lang, vocab, use_LogRes)
+            svc.train(data[set])
+
+            gold, predict = validate(svc, en_test[set])
+            eng += gold
+            enp += predict
+
+            gold, predict = validate(svc, de_test[set])
+            deg += gold
+            dep += predict
+
+            gold, predict = validate(svc, es_test[set])
+            esg += gold
+            esp += predict
 
         print("")
+        print("EN")
+        print_validation(eng, enp)
+        print("")
+        print("DE")
+        print_validation(deg, dep)
+        print("")
+        print("ES")
+        print_validation(esg, esp)
 
 
 if __name__ == "__main__":
     main(
-        ignore_en_only_prompt=True
+        ignore_en_only_prompt=True,
+        subset_passes=15,
+        use_LogRes=True
     )
