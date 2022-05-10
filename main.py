@@ -75,15 +75,16 @@ class CrossLingualContendScoring(object):
             return [], []
 
     def __create_features(self, data: List[CrossLingualDataEntry]):
-        langgraber = lambda x: x.og_text
+        langgraber = lambda x: (x.og_text, x.lang)
         if self.lang == "en":
-            langgraber = lambda x: x.en_text
+            langgraber = lambda x: (x.en_text, "en")
         if self.lang == "de":
-            langgraber = lambda x: x.de_text
+            langgraber = lambda x: (x.de_text, "de")
         if self.lang == "es":
-            langgraber = lambda x: x.es_text
+            langgraber = lambda x: (x.es_text, "es")
+
         count_matrix = self.vocab.transform(
-            [preprocessing.compose(*self.preprocessing)(langgraber(data_entry)) for data_entry in data])
+            [preprocessing.compose(*self.preprocessing)(*langgraber(data_entry)) for data_entry in data])
         return count_matrix
 
     def predict(self, data: CrossLingualDataEntry) -> int:
@@ -180,15 +181,18 @@ def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False):
             en_train_300[n][i] = s[:300]
 
     lang = "en"
+    preproc = [preprocessing.lemmatize, preprocessing.lower]
 
     for set in range(10):
         if ignore_en_only_prompt:
             if not [0, 1, 9].__contains__(set):
                 continue
+
+        print("Set", set + 1)
+        vocab = get_vocabulary(en_train[set], lang=lang)
         print("Training set", set + 1)
 
-        preproc = [preprocessing.lower]
-        vocab = get_vocabulary(en_train[set], lang=lang)
+
 
         """
         svc = CrossLingualContendScoring(preproc, lang, vocab)
