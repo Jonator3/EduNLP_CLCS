@@ -7,11 +7,24 @@ nltk.download('punkt')
 nltk.download('wordnet')
 nltk.download('omw-1.4')
 
+from nltk.corpus import wordnet
+
 
 def replace_with_nothing(text: str, replacements: list[str]):
     for replacement in replacements:
         text = text.replace(replacement, "")
     return text
+
+
+def translate_tag(tag):
+    tag_dict = {"J": wordnet.ADJ,
+                "N": wordnet.NOUN,
+                "V": wordnet.VERB,
+                "R": wordnet.ADV}
+    new_tag = tag_dict.get(tag[0])
+    if new_tag is None:
+        new_tag = wordnet.NOUN
+    return new_tag
 
 
 def compose(*functions):
@@ -45,10 +58,11 @@ def lemmatize(text: str, lang: str) -> str:
         "de": "german",
         "es": "spanish"
     }
+
     lemmatizer = nltk.stem.wordnet.WordNetLemmatizer()
     tokens = nltk.tokenize.word_tokenize(text, lang_full.get(lang))
-    postaged = nltk.pos_tag(tokens)
-    lemmatized = [lemmatizer.lemmatize(word, tag) for word, tag in postaged]
+    tagged = nltk.pos_tag(tokens)
+    lemmatized = [lemmatizer.lemmatize(word, translate_tag(tag)) for word, tag in tagged]
     return " ".join(lemmatized)
 
 

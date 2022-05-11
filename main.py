@@ -169,8 +169,6 @@ def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False):
     en_test = separate_set(load_data("data/en_test.csv"))
     de_test = separate_set(load_data("data/de.csv"))
     es_test = separate_set(load_data("data/es.csv"))
-    de_train = de_test.copy()
-    es_train = es_test.copy()
 
     en_train_300 = []
     for n in range(subset_passes):
@@ -182,6 +180,9 @@ def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False):
 
     lang = "en"
     preproc = [preprocessing.lemmatize, preprocessing.lower]
+
+    print(en_test[1][5].en_text)
+    print(preprocessing.lemmatize(en_test[1][5].en_text, "en"))
 
     for set in range(10):
         if ignore_en_only_prompt:
