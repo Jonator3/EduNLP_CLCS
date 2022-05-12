@@ -17,6 +17,7 @@ import csv
 import preprocessing
 
 
+
 class CrossLingualDataEntry(object):
 
     def __init__(self, id, lang, set, gold_score, og_text, en_text):
