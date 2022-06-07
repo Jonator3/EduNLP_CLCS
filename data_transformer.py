@@ -6,6 +6,7 @@ import translator
 head = ["Id", "EssaySet", "Score", "OriginalText", "OriginalLanguage", "EnglishText", "GermanText", "SpanishText"]
 
 
+"""
 # Deutsch
 reader = csv.reader(open("data/de.csv", "r"))
 writer = csv.writer(open("data/de.csv", "w+"))
@@ -48,3 +49,4 @@ for row in reader:
     time.sleep(0.1)
     print(row[0])
     writer.writerow(data)
+"""
