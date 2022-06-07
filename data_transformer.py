@@ -3,43 +3,48 @@ import time
 
 import translator
 
-head = ["Id", "EssaySet", "Score", "OriginalText", "OriginalLanguage", "EnglishText"]
+head = ["Id", "EssaySet", "Score", "OriginalText", "OriginalLanguage", "EnglishText", "GermanText", "SpanishText"]
 
 
 # Deutsch
-reader = csv.reader(open("CrossLingualData/de/germanAsap_clean.txt", "r"), delimiter="\t")
-writer = csv.writer(open("data/de.csv", "w"))
+reader = csv.reader(open("data/de.csv", "r"))
+writer = csv.writer(open("data/de.csv", "w+"))
 reader.__next__()
 writer.writerow(head)
 for row in reader:
-    data = "de"+row[0], row[1], row[2], row[4], "de", translator.translate(row[4])
+    data = row[0], row[1], row[2], row[3], "de", row[5], row[3], translator.translate(row[3], "ES")
     time.sleep(0.1)
-    print("de", row[0])
+    print(row[0])
     writer.writerow(data)
 
+"""
 # Englisch
 print("en")
-reader = csv.reader(open("CrossLingualData/en/test_public.txt", "r"), delimiter="\t")
-writer = csv.writer(open("data/en_test.csv", "w"))
+reader = csv.reader(open("data/en_test.csv", "r"))
+writer = csv.writer(open("data2/en_test.csv", "w+"))
 reader.__next__()
 writer.writerow(head)
 for row in reader:
-    data = "en"+row[0], row[1], row[2], row[4], "en", row[4]
+    data = row[0], row[1], row[2], row[3], "en", row[5], translator.translate(row[3], "DE"), translator.translate(row[3], "ES")
     writer.writerow(data)
-reader = csv.reader(open("CrossLingualData/en/train.tsv", "r"), delimiter="\t")
-writer = csv.writer(open("data/en_train.csv", "w"))
+    print(row[0])
+reader = csv.reader(open("data/en_train.csvv", "r"))
+writer = csv.writer(open("data2/en_train.csv", "w"))
 reader.__next__()
 writer.writerow(head)
 for row in reader:
-    data = "en"+row[0], row[1], row[2], row[4], "en", row[4]
+    data = row[0], row[1], row[2], row[3], "en", row[5], translator.translate(row[3], "DE"), translator.translate(row[3], "ES")
     writer.writerow(data)
+    print(row[0])
+"""
 
 # Spanisch
-reader = csv.reader(open("CrossLingualData/es/spanish_gold.txt", "r"), delimiter="\t")
+reader = csv.reader(open("data/es.csv", "r"))
 writer = csv.writer(open("data/es.csv", "w"))
+reader.__next__()
 writer.writerow(head)
-for i, row in enumerate(reader):
-    data = "es"+row[0], row[1], row[2][:-2], row[3], "es", translator.translate(row[3])
+for row in reader:
+    data = row[0], row[1], row[2], row[3], "es", row[5], translator.translate(row[3], "DE"), row[3]
     time.sleep(0.1)
-    print("es", i)
+    print(row[0])
     writer.writerow(data)
