@@ -4,7 +4,7 @@ print("imports")
 import torch
 import nltk
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
-from keras.utils import pad_sequences
+from keras.utils import pad_sequences as keras_pad
 #from sklearn.model_selection import train_test_split
 from pytorch_pretrained_bert import BertTokenizer, BertConfig
 from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification
@@ -35,7 +35,7 @@ def concat(list):
 
 def pad_sequences(*lists):
     pad = concat(lists)
-    padded = pad_sequences(pad)
+    padded = keras_pad(pad)
     i = 0
     out = []
     for list in lists:
@@ -76,8 +76,8 @@ def preprocess_dataset(dataset_path, max_l=None, verbose=True):
 
 
 print("load and tokenize data")
-train_set = preprocess_dataset("data/en_train.csv", 100)
-test_set = preprocess_dataset("data/en_test.csv", 100)
+train_set = preprocess_dataset("data/en_train.csv", 10)
+test_set = preprocess_dataset("data/en_test.csv", 10)
 
 train_labels = [d[2] for d in train_set]
 test_labels = [d[2] for d in test_set]
