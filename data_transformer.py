@@ -6,15 +6,15 @@ import translator
 head = ["Id", "EssaySet", "Score", "OriginalText", "OriginalLanguage", "EnglishText", "GermanText", "SpanishText"]
 
 
-reader1d = open("ASAP_übersetzt/train_prompt1 de.txt", "r")
-reader2d = open("ASAP_übersetzt/train_prompt2 de.txt", "r")
-reader10d = open("ASAP_übersetzt/train_prompt10 de.txt", "r")
-reader1e = open("ASAP_übersetzt/train_prompt1 es.txt", "r")
-reader2e = open("ASAP_übersetzt/train_prompt2 es.txt", "r")
-reader10e = open("ASAP_übersetzt/train_prompt10 es.txt", "r")
-reader = csv.reader(open("data/en_train.csv", "r"))
+reader1d = open("ASAP_übersetzt/test_public_prompt1 de.txt", "r")
+reader2d = open("ASAP_übersetzt/test_public_prompt2 de.txt", "r")
+reader10d = open("ASAP_übersetzt/test_public_prompt10 de.txt", "r")
+reader1e = open("ASAP_übersetzt/test_public_prompt1 es.txt", "r")
+reader2e = open("ASAP_übersetzt/test_public_prompt2 es.txt", "r")
+reader10e = open("ASAP_übersetzt/test_public_prompt10 es.txt", "r")
+reader = csv.reader(open("data/en_test.csv", "r"))
 reader.__next__()
-writer = csv.writer(open("data/en_train2.csv", "w"))
+writer = csv.writer(open("data/en_test.csv", "w"))
 writer.writerow(head)
 
 data = {}
@@ -61,5 +61,7 @@ for line in reader10e.readlines():
 
 for key in data.keys():
     row = data.get(key)
+    if 10 > int(row[1]) >= 3:
+        continue
     writer.writerow(row)
 

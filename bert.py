@@ -12,7 +12,7 @@ from tqdm import tqdm, trange
 #import pandas as pd
 #import io
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import main
 
 
@@ -82,7 +82,8 @@ test_set = preprocess_dataset("data/en_test.csv", 10)
 train_labels = [d[2] for d in train_set]
 test_labels = [d[2] for d in test_set]
 
-train_inputs, test_inputs = pad_sequences([d[1] for d in train_set], [d[1] for d in test_set])
+train_inputs = keras_pad([d[1] for d in train_set])
+test_inputs = keras_pad([d[1] for d in test_set])
 
 train_masks = make_masks(train_inputs)
 test_masks = make_masks(test_inputs)
@@ -104,7 +105,7 @@ test_sampler = SequentialSampler(test_data)
 test_dataloader = DataLoader(test_data, sampler=test_sampler, batch_size=batch_size)
 
 model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=4)
-model.cuda()
+#model.cuda()
 
 # BERT fine-tuning parameters
 param_optimizer = list(model.named_parameters())
@@ -190,6 +191,7 @@ for _ in trange(epochs, desc="Epoch"):
     print("Validation Accuracy: {}".format(eval_accuracy / nb_eval_steps))
 
 # plot training performance
+
 plt.figure(figsize=(15, 8))
 plt.title("Training loss")
 plt.xlabel("Batch")

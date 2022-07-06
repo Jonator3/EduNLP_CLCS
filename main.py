@@ -17,16 +17,17 @@ import csv
 import preprocessing
 
 
-
 class CrossLingualDataEntry(object):
 
-    def __init__(self, id, lang, set, gold_score, og_text, en_text):
+    def __init__(self, id, lang, set, gold_score, og_text, en_text, de_text, es_text):
         self.id = id
         self.lang = lang
         self.set = int(set)
         self.gold_score = int(gold_score)
         self.og_text = og_text
         self.en_text = en_text
+        self.de_text = de_text
+        self.es_text = es_text
 
     def __str__(self):
         return f"CLDE: {self.id} in set {self.set}: {self.gold_score}"
@@ -107,7 +108,7 @@ def load_data(input_path: str) -> List[CrossLingualDataEntry]:
     reader = csv.reader(open(input_path, "r"))
     reader.__next__()  # skip head
     for row in reader:
-        entry = CrossLingualDataEntry(row[0], row[4], row[1], row[2], row[3], row[5])
+        entry = CrossLingualDataEntry(row[0], row[4], row[1], row[2], row[3], row[5], row[6], row[7])
         data.append(entry)
     return data
 
@@ -180,122 +181,55 @@ def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False, prepro
             en_train_300[n][i] = s[:300]
 
 
-
     for set in range(10):
         if ignore_en_only_prompt:
             if not [0, 1, 9].__contains__(set):
                 continue
 
         print("Set", set + 1)
-        vocab_en = get_vocabulary(en_train[set], lang="og")
-        vocab_es = get_vocabulary(es_test[set], lang="og")
-        vocab_de = get_vocabulary(de_test[set], lang="og")
-
-        print("")
-        print("=== baseline ===")
-
-        svc_en = CrossLingualContendScoring(preproc, "og", vocab_en)
-        svc_en.train(en_train[set])
-        gold, predict = validate(svc_en, en_test[set])
-        print("")
-        print("EN-EN")
-        print_validation(gold, predict)
-
-        svc = CrossLingualContendScoring(preproc, "og", vocab_de)
-        predict, gold = svc.train(de_test[set], kfold=True)
-        print("")
-        print("DE-DE")
-        print_validation(gold, predict)
-
-        svc = CrossLingualContendScoring(preproc, "og", vocab_es)
-        predict, gold = svc.train(es_test[set], kfold=True)
-        print("")
-        print("ES-ES")
-        print_validation(gold, predict)
-
-        eng = []
-        enp = []
-        deg = []
-        dep = []
-        esg = []
-        esp = []
-
-        for data in en_train_300:
-            svc = CrossLingualContendScoring(preproc, "en", vocab_en, use_LogRes)
-            gold, predict = svc.train(data[set], kfold=True)
-
-            # gold, predict = validate(svc, en_test[set])
-            eng += gold
-            enp += predict
-
-            gold, predict = validate(svc, de_test[set])
-            deg += gold
-            dep += predict
-
-            gold, predict = validate(svc, es_test[set])
-            esg += gold
-            esp += predict
-
-        print("")
-        print("EN300-EN")
-        print_validation(eng, enp)
+        vocab_en = get_vocabulary(en_train[set] + de_test[set] + es_test[set], lang="en")
+        vocab_es = get_vocabulary(en_train[set] + de_test[set] + es_test[set], lang="es")
+        vocab_de = get_vocabulary(en_train[set] + de_test[set] + es_test[set], lang="de")
 
         print("")
         print("=== translate both ===")
 
-        svc = CrossLingualContendScoring(preproc, "en", vocab_de)
-        predict, gold = svc.train(de_test[set], kfold=True)
+        svc_en_de = CrossLingualContendScoring(preproc, "de", vocab_de)
+        svc_en_de.train(en_train[set])
+        gold, predict = validate(svc_en_de, en_test[set])
         print("")
-        print("DE-EN")
+        print("EN>DE-EN>DE")
         print_validation(gold, predict)
 
-        svc = CrossLingualContendScoring(preproc, "en", vocab_es)
-        predict, gold = svc.train(es_test[set], kfold=True)
+        svc_en_es = CrossLingualContendScoring(preproc, "es", vocab_es)
+        svc_en_es.train(en_train[set])
+        gold, predict = validate(svc_en_es, en_test[set])
         print("")
-        print("ES-EN")
+        print("EN>ES-EN>ES")
         print_validation(gold, predict)
 
+        svc_es_de = CrossLingualContendScoring(preproc, "de", vocab_de)
+        gold, predict = svc_es_de.train(es_test[set], kfold=True)
         print("")
-        print("=== translate train ===")
-
-        svc = CrossLingualContendScoring(preproc, "en", vocab_de)
-        svc.train(de_test[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("DE-EN")
+        print("ES>DE-ES>DE")
         print_validation(gold, predict)
 
-        svc = CrossLingualContendScoring(preproc, "en", vocab_es)
-        svc.train(es_test[set])
-        gold, predict = validate(svc, en_test[set])
+        svc_en_es = CrossLingualContendScoring(preproc, "es", vocab_es)
+        svc_en_es.train(en_train[set])
+        gold, predict = validate(svc_en_es, en_test[set])
         print("")
-        print("ES-EN")
+        print("EN>ES-EN>ES")
         print_validation(gold, predict)
 
-        svc = CrossLingualContendScoring(preproc, "en", vocab_es)
-        svc.train(es_test[set] + de_test[set])
-        gold, predict = validate(svc, en_test[set])
+        gold, predict = validate(svc_en_de, de_test[set])
         print("")
-        print("ES+DE-EN")
+        print("EN>DE-DE")
         print_validation(gold, predict)
 
+        gold, predict = validate(svc_en_de, es_test[set])
         print("")
-        print("=== translate test ===")
-
-        gold, predict = validate(svc_en, de_test[set])
-        print("EN-DE")
+        print("EN>DE-ES>DE")
         print_validation(gold, predict)
-
-        gold, predict = validate(svc_en, es_test[set])
-        print("EN-ES")
-        print_validation(gold, predict)
-
-        print("")
-        print("EN300-DE")
-        print_validation(deg, dep)
-        print("")
-        print("EN300-ES")
-        print_validation(esg, esp)
 
 
 if __name__ == "__main__":
