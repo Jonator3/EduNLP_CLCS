@@ -248,8 +248,8 @@ def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False, prepro
         print_validation(gold, predict)
 
         svc_de_es = CrossLingualContendScoring(preproc, "es", vocab_es)
-        gold, predict = svc_de_es.train(en_train[set], kfold=True)
-        svc_de_es.train(en_train[set])
+        gold, predict = svc_de_es.train(de_test[set], kfold=True)
+        svc_de_es.train(de_test[set])
         print("")
         print("DE>ES-DE>ES")
         print_validation(gold, predict)
