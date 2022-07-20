@@ -4,7 +4,7 @@ print("imports")
 import torch
 import nltk
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
-from keras.utils import pad_sequences as keras_pad
+from keras.utils import pad_sequences
 #from sklearn.model_selection import train_test_split
 from pytorch_pretrained_bert import BertTokenizer, BertConfig
 from pytorch_pretrained_bert import BertAdam, BertForSequenceClassification
@@ -20,6 +20,8 @@ batch_size = 32
 
 print("set device")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# needed to run torch on a GPU
 """
 n_gpu = torch.cuda.device_count()
 torch.cuda.get_device_name(0)
@@ -27,24 +29,15 @@ torch.cuda.get_device_name(0)
 
 
 def concat(list):
+    """ Takes a List of Lists and concats them to a single List."""
     out = []
     for entry in list:
         out += entry
     return out
 
 
-def pad_sequences(*lists):
-    pad = concat(lists)
-    padded = keras_pad(pad)
-    i = 0
-    out = []
-    for list in lists:
-        out.append(padded[i:len(list)])
-        i += len(list)
-    return out
-
-
 def make_masks(input_ids):
+    """ Makes an Attentionmask for a Bert-input, that basically marks the hole Text."""
     attention_masks = []
     # Create a mask of 1s for each token followed by 0s for padding
     for seq in input_ids:
@@ -53,7 +46,17 @@ def make_masks(input_ids):
     return attention_masks
 
 
-def preprocess_dataset(dataset_path, max_l=None, verbose=True):
+def preprocess_dataset(dataset_path, max_l=None, verbose=False):
+    """ Loads and prepares a Dataset for use with Bert.
+        Tokenizes the Text with the Bert-tokenizer and adds Markings for the beginning and Ends of Sentences.
+        Also converts the Tokens to id for use with Bert.
+
+        dataset_path: path to the .csv-File containing the Dataset.
+
+        max_l: if set the Function will only load the first max_l Entry's of the Dataset.
+
+        verbose: if True a Progressbar will be print out, witch may spam log-Files.
+    """
     print("loading", dataset_path)
     data = []
     dataset = [entry for entry in main.load_data(dataset_path) if entry.set < 3 or entry.set == 10]
@@ -66,7 +69,6 @@ def preprocess_dataset(dataset_path, max_l=None, verbose=True):
         tokenizer = BertTokenizer.from_pretrained('bert-base-uncased', do_lower_case=True)
         tokenized_text = concat([tokenizer.tokenize(sent) for sent in sentences])
         input_ids = tokenizer.convert_tokens_to_ids(tokenized_text)
-        #input_ids = [tokenizer.convert_tokens_to_ids(txt) for txt in tokenized_text]
 
         data.append((tokenized_text, input_ids, score))
         if verbose:
@@ -82,8 +84,8 @@ test_set = preprocess_dataset("data/en_test.csv", 10)
 train_labels = [d[2] for d in train_set]
 test_labels = [d[2] for d in test_set]
 
-train_inputs = keras_pad([d[1] for d in train_set])
-test_inputs = keras_pad([d[1] for d in test_set])
+train_inputs = pad_sequences([d[1] for d in train_set])
+test_inputs = pad_sequences([d[1] for d in test_set])
 
 train_masks = make_masks(train_inputs)
 test_masks = make_masks(test_inputs)
@@ -107,6 +109,8 @@ test_dataloader = DataLoader(test_data, sampler=test_sampler, batch_size=batch_s
 model = BertForSequenceClassification.from_pretrained("bert-base-uncased", num_labels=4)
 #model.cuda()
 
+
+# copied strait from the Tutorial
 # BERT fine-tuning parameters
 param_optimizer = list(model.named_parameters())
 no_decay = ['bias', 'gamma', 'beta']
@@ -122,6 +126,7 @@ optimizer = BertAdam(optimizer_grouped_parameters,
                      warmup=.1)
 
 
+# copied strait from the Tutorial
 # Function to calculate the accuracy of our predictions vs labels
 def flat_accuracy(preds, labels):
     pred_flat = np.argmax(preds, axis=1).flatten()
@@ -134,6 +139,8 @@ train_loss_set = []
 # Number of training epochs
 epochs = 4
 
+
+# copied strait from the Tutorial
 # BERT training loop
 for _ in trange(epochs, desc="Epoch"):
 
