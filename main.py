@@ -35,7 +35,7 @@ class CrossLingualDataEntry(object):
 
 class CrossLingualContendScoring(object):
 
-    def __init__(self, preprocessing=[], lang="en", vocabulary=None, use_LogRes=False):
+    def __init__(self, preprocessing=[], lang="en", vocabulary=None, use_LogRes=True):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
         if use_LogRes:
@@ -166,31 +166,49 @@ def separate_set(dataset: List[CrossLingualDataEntry]):
     return output
 
 
-def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False, preproc=[preprocessing.lower]):
+def get_subsets(base_set, length, count=10):
+    en_train_300 = []
+    for n in range(count):
+        en_train_300.append(base_set.copy())
+        for i, set in enumerate(en_train_300[n]):
+            s = set.copy()
+            random.shuffle(s)
+            en_train_300[n][i] = s[:length]
+    return en_train_300
+
+
+def main(ignore_en_only_prompt=True, subset_passes=10, preproc=[preprocessing.lower]):
     en_train = separate_set(load_data("data/en_train.csv"))
     en_test = separate_set(load_data("data/en_test.csv"))
     de_test = separate_set(load_data("data/de.csv"))
     es_test = separate_set(load_data("data/es.csv"))
 
-    en_train_300 = []
-    for n in range(subset_passes):
-        en_train_300.append(en_train.copy())
-        for i, set in enumerate(en_train_300[n]):
-            s = set.copy()
-            random.shuffle(s)
-            en_train_300[n][i] = s[:300]
+    #en_train_300 = get_subsets(en_train, 300, subset_passes)
 
+    en_finn = separate_set(load_data("data/en_finn.csv"))
+    en_joey = separate_set(load_data("data/en_joey.csv"))
 
     for set in range(10):
         if ignore_en_only_prompt:
-            if not [0, 1, 9].__contains__(set):
+            if not [0, 1, 9].__contains__(set):  # will only run prompt 1, 2, 10
                 continue
 
         print("Set", set + 1)
+
+        temp = [d.id for d in en_finn[set]]
+        ids = [d2.id for d2 in en_joey[set] if temp.__contains__(d2.id)]
+        del temp
+        pf = [[d.id for d in en_finn[set] if ids.__contains__(d.id)]].sort(key=lambda x: x.id)
+        pj = [[d.id for d in en_joey[set] if ids.__contains__(d.id)]].sort(key=lambda x: x.id)
+
+        print("IAA: Finn\\Joey")
+        print_validation(pf, pj)
+
+        """
         vocab_en = get_vocabulary(en_train[set] + de_test[set] + es_test[set], lang="en")
         vocab_es = get_vocabulary(en_train[set] + de_test[set] + es_test[set], lang="es")
         vocab_de = get_vocabulary(en_train[set] + de_test[set] + es_test[set], lang="de")
-
+        
         en300_de = []
         en300_es = []
         for data in en_train_300:
@@ -315,12 +333,12 @@ def main(ignore_en_only_prompt=False, subset_passes=10, use_LogRes=False, prepro
         print("")
         print("ES-EN>ES")
         print_validation(gold, predict)
+        """
 
 
 if __name__ == "__main__":
     main(
         ignore_en_only_prompt=True,
         subset_passes=15,
-        use_LogRes=True,
         preproc=[preprocessing.lemmatize, preprocessing.lower],
     )
