@@ -47,8 +47,10 @@ class CrossLingualContendScoring(object):
     def train(self, trainingset, kfold=False, verbose=False):
         if self.vocab is None:
             self.vocab = get_vocabulary(trainingset, lang=self.lang)
-        eval = [[], []]
+
         if kfold:
+            gold = []
+            pred = []
             kf = KFold(n_splits=10, shuffle=True)
             i = 1
             for train_index, test_index in kf.split(trainingset):
@@ -62,14 +64,14 @@ class CrossLingualContendScoring(object):
 
                 # Test model
                 predict = self.svc.predict(X_test)
-                eval[1] += y_test
-                eval[0] += list(predict)
+                gold += y_test
+                pred += list(predict)
                 if verbose:
                     print(f"Fold no. {i}")
                     print(f"Accuracy = {accuracy_score(y_test, predict)}")
                     print(f"Kappa = {cohen_kappa_score(y_test, predict, weights='quadratic')}")
                 i += 1
-            return eval[0], eval[1]
+            return gold, pred
         else:
             count_matrix = self.__create_features(trainingset)
             y = [data_entry.gold_score for data_entry in trainingset]
