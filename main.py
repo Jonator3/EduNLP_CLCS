@@ -186,23 +186,51 @@ def main(ignore_en_only_prompt=True, subset_passes=10, preproc=[preprocessing.lo
     #en_train_300 = get_subsets(en_train, 300, subset_passes)
 
     en_finn = separate_set(load_data("data/en_finn.csv"))
-    en_joey = separate_set(load_data("data/en_joey.csv"))
 
     for set in range(10):
         if ignore_en_only_prompt:
             if not [0, 1, 9].__contains__(set):  # will only run prompt 1, 2, 10
                 continue
 
-        print("Set", set + 1)
+        print("\n\nSet", set + 1)
 
-        temp = [d.id for d in en_finn[set]]
-        ids = [d2.id for d2 in en_joey[set] if temp.__contains__(d2.id)]
-        del temp
-        pf = [[d.id for d in en_finn[set] if ids.__contains__(d.id)]].sort(key=lambda x: x.id)
-        pj = [[d.id for d in en_joey[set] if ids.__contains__(d.id)]].sort(key=lambda x: x.id)
+        print("\n=== BASELINE ===")
+        svc = CrossLingualContendScoring(preproc, "en")
+        gold, predict = svc.train(en_finn[set], kfold=True)
+        print("")
+        print("EN")
+        print_validation(gold, predict)
 
-        print("IAA: Finn\\Joey")
-        print_validation(pf, pj)
+        print("\n=== TRANSLATE BOTH ===")
+
+        svc = CrossLingualContendScoring(preproc, "de")
+        gold, predict = svc.train(en_finn[set], kfold=True)
+        print("")
+        print("EN>DE-EN>DE")
+        print_validation(gold, predict)
+
+        svc = CrossLingualContendScoring(preproc, "es")
+        gold, predict = svc.train(en_finn[set], kfold=True)
+        print("")
+        print("EN>ES-EN>ES")
+        print_validation(gold, predict)
+
+        print("\n=== TRANSLATE TRAIN ===")
+
+        svc = CrossLingualContendScoring(preproc, "de")
+        svc.train(en_finn[set])
+        gold, predict = validate(svc, de_test[set])
+        print("")
+        print("EN>DE-DE")
+        print_validation(gold, predict)
+
+        svc = CrossLingualContendScoring(preproc, "es")
+        svc.train(en_finn[set])
+        gold, predict = validate(svc, de_test[set])
+        print("")
+        print("EN>ES-ES")
+        print_validation(gold, predict)
+
 
         """
         vocab_en = get_vocabulary(en_train[set] + de_test[set] + es_test[set], lang="en")

@@ -4,3 +4,4 @@
 /deepl.auth
 /*.clcs
 /test*
+/data_transformer.py
