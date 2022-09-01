@@ -145,13 +145,18 @@ def get_vocabulary(*datasets, lang="en"):
     return vocab
 
 
-def print_validation(gold, predict):
+def get_average(list):
+    return sum(list)/len(list)
+
+
+def print_validation(gold, predict, name1="Gold", name2="Prediction"):
     mat = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     for i in range(len(gold)):
         g = gold[i]
         p = predict[i]
         mat[g][p] += 1
-    print("Gold/\tPrediction")
+    print("")
+    print(name1, "/\t", name2)
     print("\t|", "0\t\t|", "1\t\t|", "2\t\t|", "3")
     for g, pre in enumerate(mat):
         print(g, "\t|", pre[0], "\t|", pre[1], "\t|", pre[2], "\t|", pre[3])
@@ -188,6 +193,7 @@ def main(ignore_en_only_prompt=True, subset_passes=10, preproc=[preprocessing.lo
     #en_train_300 = get_subsets(en_train, 300, subset_passes)
 
     en_finn = separate_set(load_data("data/en_finn.csv"))
+    en_joey = separate_set(load_data("data/en_joey.csv"))
 
     for set in range(10):
         if ignore_en_only_prompt:
@@ -196,42 +202,14 @@ def main(ignore_en_only_prompt=True, subset_passes=10, preproc=[preprocessing.lo
 
         print("\n\nSet", set + 1)
 
-        print("\n=== BASELINE ===")
-        svc = CrossLingualContendScoring(preproc, "en")
-        gold, predict = svc.train(en_finn[set], kfold=True)
-        print("")
-        print("EN")
-        print_validation(gold, predict)
+        finn = [d.gold_score for d in en_finn[set]]
+        joey = [d.gold_score for d in en_joey[set]]
+        original = [d.gold_score for d in en_train[set]]
 
-        print("\n=== TRANSLATE BOTH ===")
-
-        svc = CrossLingualContendScoring(preproc, "de")
-        gold, predict = svc.train(en_finn[set], kfold=True)
-        print("")
-        print("EN>DE-EN>DE")
-        print_validation(gold, predict)
-
-        svc = CrossLingualContendScoring(preproc, "es")
-        gold, predict = svc.train(en_finn[set], kfold=True)
-        print("")
-        print("EN>ES-EN>ES")
-        print_validation(gold, predict)
-
-        print("\n=== TRANSLATE TRAIN ===")
-
-        svc = CrossLingualContendScoring(preproc, "de")
-        svc.train(en_finn[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("EN>DE-DE")
-        print_validation(gold, predict)
-
-        svc = CrossLingualContendScoring(preproc, "es")
-        svc.train(en_finn[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("EN>ES-ES")
-        print_validation(gold, predict)
+        print("Average:")
+        print("Finn", get_average(finn))
+        print("Joey", get_average(joey))
+        print("Original", get_average(original))
 
 
         """
@@ -367,8 +345,4 @@ def main(ignore_en_only_prompt=True, subset_passes=10, preproc=[preprocessing.lo
 
 
 if __name__ == "__main__":
-    main(
-        ignore_en_only_prompt=True,
-        subset_passes=15,
-        preproc=[preprocessing.lemmatize, preprocessing.lower],
-    )
+    main(ignore_en_only_prompt=True, subset_passes=15, preproc=[preprocessing.lemmatize, preprocessing.lower])
