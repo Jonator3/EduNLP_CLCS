@@ -1,17 +1,13 @@
-import os.path
+
 import random
-import sys
 from typing import List
 
-import sklearn
 from sklearn import svm
-from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import FeatureUnion
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score, accuracy_score, cohen_kappa_score, make_scorer
-from sklearn.model_selection import cross_val_score, cross_validate, KFold
-import pickle
+from sklearn.metrics import accuracy_score, cohen_kappa_score
+from sklearn.model_selection import KFold
 import csv
 
 import preprocessing
@@ -500,4 +496,4 @@ def main(ignore_en_only_prompt=True, subset_passes=10, preproc=[preprocessing.lo
 
 
 if __name__ == "__main__":
-    main(ignore_en_only_prompt=True, subset_passes=15, preproc=[preprocessing.lemmatize, preprocessing.lower])
+    main(ignore_en_only_prompt=True, subset_passes=15, preproc=[preprocessing.lower])
