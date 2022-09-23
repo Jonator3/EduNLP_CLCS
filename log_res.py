@@ -1,5 +1,4 @@
 
-from sklearn import svm
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import FeatureUnion
 from sklearn.linear_model import LogisticRegression
