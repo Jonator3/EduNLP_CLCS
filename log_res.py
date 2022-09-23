@@ -37,14 +37,14 @@ class LogResClassifier(object):
         self.svc = LogisticRegression(max_iter=max_iter)
         self.lang = lang
 
-    def train(self, trainingset, kfold=False, verbose=False):
+    def train(self, trainingset, kfold=0, verbose=False):
         if self.vocab is None:
             self.vocab = get_vocabulary(trainingset, lang=self.lang)
 
-        if kfold:
+        if kfold > 0:
             gold = []
             pred = []
-            kf = KFold(n_splits=10, shuffle=True)
+            kf = KFold(n_splits=kfold, shuffle=True)
             i = 1
             for train_index, test_index in kf.split(trainingset):
                 X_train = self.__create_features([trainingset[i] for i in train_index])

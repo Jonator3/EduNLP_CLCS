@@ -23,17 +23,30 @@ def get_average(list):
     return sum(list)/len(list)
 
 
-def print_validation(gold, predict, name1="Gold", name2="Prediction"):
+def stuff_str(s, l, attach_left=False, stuff_char=" "):
+    while len(s) < l:
+        if attach_left:
+            s = stuff_char + s
+        else:
+            s += stuff_char
+    return s
+
+
+def print_validation(gold, predict, name1="Gold", name2="Prediction", stuff_len=5):
     mat = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     for i in range(len(gold)):
         g = gold[i]
         p = predict[i]
         mat[g][p] += 1
+    name1 = stuff_str(name1, max(stuff_len, 4))
     print("")
-    print(name1, "/\t", name2)
-    print("\t|", "0\t\t|", "1\t\t|", "2\t\t|", "3")
+    print(name1, "|", stuff_str(stuff_str(name2, ((stuff_len*4)+3)/2), (stuff_len*4)+3)+"|")
+    print(stuff_str("", len(name1)+1)+"|"+stuff_str("0", stuff_len)+"|"+stuff_str("1", stuff_len)+"|"+stuff_str("2", stuff_len)+"|"+stuff_str("3", stuff_len)+"|")
     for g, pre in enumerate(mat):
-        print(g, "\t|", pre[0], "\t|", pre[1], "\t|", pre[2], "\t|", pre[3])
+        s = stuff_str(str(g), len(name1)+1) + "|"
+        for i in range(4):
+            s += stuff_str(str(pre[i]), stuff_len, True) + "|"
+        print(s)
     print("--------------------------------------")
     kappa = round(cohen_kappa_score(gold, predict, weights="quadratic"), 3)
     acc = round(accuracy_score(gold, predict), 3)
@@ -43,317 +56,31 @@ def print_validation(gold, predict, name1="Gold", name2="Prediction"):
     return mat, kappa, acc
 
 
+def main(lang, trainset, kfold=0, testset=None, name1="trainset", name2="testset"):
+    preproc = [preprocessing.lower]
+    result = [None, None, None, None, None, None, None, None, None, None]
 
-def main(ignore_en_only_prompt=True, subset_passes=10, preproc=[preprocessing.lower]):
-    en_train = separate_set(load_data("data/en_train.csv"))
-    en_test = separate_set(load_data("data/en_test.csv"))
-    de_test = separate_set(load_data("data/de.csv"))
-    es_test = separate_set(load_data("data/es.csv"))
-    en_shk = separate_set(load_data("data/en_shk.csv"))
+    for prompt in [0, 1, 9]:
 
-    en_train_300 = get_subsets(en_train, 300, subset_passes)
+        print("\n\nPrompt:", prompt + 1)
 
+        if kfold <= 0:
+            svc = LogResClassifier(preproc, lang)
+            svc.train(trainset[prompt])
+            gold, predict = validate(svc, testset[prompt])
+            print("")
+            print(name1+">"+lang+" - "+name2+">"+lang)
+            result[prompt] = print_validation(gold, predict)
 
-    for set in range(10):
-        if ignore_en_only_prompt:
-            if not [0, 1, 9].__contains__(set):  # will only run prompt 1, 2, 10
-                continue
+        else:
+            svc = LogResClassifier(preproc, lang)
+            gold, predict = svc.train(trainset[prompt], kfold=kfold)
+            print("")
+            print(name1+">"+lang+"  (K-Fold="+str(kfold)+")")
+            result[prompt] = print_validation(gold, predict)
 
-        print("\n\nSet", set + 1)
+    return result
 
-        print("=== Base-Line ===")
-
-        svc = LogResClassifier(preproc, "og")
-        svc.train(en_train[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("EN-EN")
-        print_validation(gold, predict)
-
-        gold = []
-        predict = []
-        for Dset in en_train_300:
-            svc = LogResClassifier(preproc, "og")
-            g, p = svc.train(Dset[set], kfold=True)
-            gold += g
-            predict += p
-        print("")
-        print("EN300-EN300 (KFold)")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "og")
-        gold, predict = svc.train(en_shk[set], kfold=True)
-        print("")
-        print("EN_shk-EN_shk (KFold)")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "og")
-        gold, predict = svc.train(de_test[set], kfold=True)
-        print("")
-        print("DE-DE (KFold)")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "og")
-        gold, predict = svc.train(es_test[set], kfold=True)
-        print("")
-        print("ES-ES (KFold)")
-        print_validation(gold, predict)
-
-
-        print("=== Translate Both ===")
-
-        # Translated EN
-        svc = LogResClassifier(preproc, "de")
-        svc.train(en_train[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("EN>DE-EN>DE")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "es")
-        svc.train(en_train[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("EN>ES-EN>ES")
-        print_validation(gold, predict)
-
-        # Translated EN300
-        gold = []
-        predict = []
-        for Dset in en_train_300:
-            svc = LogResClassifier(preproc, "de")
-            g, p = svc.train(Dset[set], kfold=True)
-            gold += g
-            predict += p
-        print("")
-        print("EN300>DE-EN300>DE (KFold)")
-        print_validation(gold, predict)
-
-        gold = []
-        predict = []
-        for Dset in en_train_300:
-            svc = LogResClassifier(preproc, "es")
-            g, p = svc.train(Dset[set], kfold=True)
-            gold += g
-            predict += p
-        print("")
-        print("EN300>ES-EN300>ES (KFold)")
-        print_validation(gold, predict)
-
-        # Translated EN_shk
-        svc = LogResClassifier(preproc, "de")
-        gold, predict = svc.train(en_shk[set], kfold=True)
-        print("")
-        print("EN_shk>DE-EN_shk>DE (KFold)")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "es")
-        gold, predict = svc.train(en_shk[set], kfold=True)
-        print("")
-        print("EN_shk>ES-EN_shk>ES (KFold)")
-        print_validation(gold, predict)
-
-        # Translated DE
-        svc = LogResClassifier(preproc, "en")
-        gold, predict = svc.train(de_test[set], kfold=True)
-        print("")
-        print("DE>EN-DE>EN (KFold)")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "es")
-        gold, predict = svc.train(de_test[set], kfold=True)
-        print("")
-        print("DE>ES-DE>ES (KFold)")
-        print_validation(gold, predict)
-
-        # Translate ES
-        svc = LogResClassifier(preproc, "en")
-        gold, predict = svc.train(es_test[set], kfold=True)
-        print("")
-        print("ES>EN-ES>EN (KFold)")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "de")
-        gold, predict = svc.train(es_test[set], kfold=True)
-        print("")
-        print("ES>DE-ES>DE (KFold)")
-        print_validation(gold, predict)
-
-
-        print("=== Translate Train ===")
-
-        # Train EN
-        svc = LogResClassifier(preproc, "de")
-        svc.train(en_train[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("EN>DE-DE")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "es")
-        svc.train(en_train[set])
-        gold, predict = validate(svc, es_test[set])
-        print("")
-        print("EN>ES-ES")
-        print_validation(gold, predict)
-
-        # Train EN300
-        gold = []
-        predict = []
-        for Dset in en_train_300:
-            svc = LogResClassifier(preproc, "de")
-            svc.train(Dset[set])
-            g, p = validate(svc, de_test[set])
-            gold += g
-            predict += p
-        print("")
-        print("EN300>DE-DE")
-        print_validation(gold, predict)
-
-        gold = []
-        predict = []
-        for Dset in en_train_300:
-            svc = LogResClassifier(preproc, "es")
-            svc.train(Dset[set])
-            g, p = validate(svc, es_test[set])
-            gold += g
-            predict += p
-        print("")
-        print("EN300>ES-ES")
-        print_validation(gold, predict)
-
-        # Train EN_shk
-        svc = LogResClassifier(preproc, "de")
-        svc.train(en_shk[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("EN_shk>DE-DE")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "es")
-        svc.train(en_shk[set])
-        gold, predict = validate(svc, es_test[set])
-        print("")
-        print("EN_shk>ES-ES")
-        print_validation(gold, predict)
-
-        # Train DE
-        svc = LogResClassifier(preproc, "en")
-        svc.train(de_test[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("DE>EN-EN")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "es")
-        svc.train(de_test[set])
-        gold, predict = validate(svc, es_test[set])
-        print("")
-        print("DE>ES-ES")
-        print_validation(gold, predict)
-
-        # Train ES
-        svc = LogResClassifier(preproc, "en")
-        svc.train(es_test[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("ES>EN-EN")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "de")
-        svc.train(es_test[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("ES>DE-ES")
-        print_validation(gold, predict)
-
-
-        print("=== Translate Test ===")
-
-        # Train EN
-        svc = LogResClassifier(preproc, "en")
-        svc.train(en_train[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("EN-DE>EN")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "en")
-        svc.train(en_train[set])
-        gold, predict = validate(svc, es_test[set])
-        print("")
-        print("EN-ES>EN")
-        print_validation(gold, predict)
-
-        # Train EN300
-        gold = []
-        predict = []
-        for Dset in en_train_300:
-            svc = LogResClassifier(preproc, "en")
-            svc.train(Dset[set])
-            g, p = validate(svc, de_test[set])
-            gold += g
-            predict += p
-        print("")
-        print("EN300-DE>EN")
-        print_validation(gold, predict)
-
-        gold = []
-        predict = []
-        for Dset in en_train_300:
-            svc = LogResClassifier(preproc, "en")
-            svc.train(Dset[set])
-            g, p = validate(svc, es_test[set])
-            gold += g
-            predict += p
-        print("")
-        print("EN300-ES>EN")
-        print_validation(gold, predict)
-
-        # Train EN_shk
-        svc = LogResClassifier(preproc, "en")
-        svc.train(en_shk[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("EN_shk>DE-DE")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "en")
-        svc.train(en_shk[set])
-        gold, predict = validate(svc, es_test[set])
-        print("")
-        print("EN_shk>ES-ES")
-        print_validation(gold, predict)
-
-        # Train DE
-        svc = LogResClassifier(preproc, "de")
-        svc.train(de_test[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("DE>EN-EN")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "de")
-        svc.train(de_test[set])
-        gold, predict = validate(svc, es_test[set])
-        print("")
-        print("DE>ES-ES")
-        print_validation(gold, predict)
-
-        # Train ES
-        svc = LogResClassifier(preproc, "es")
-        svc.train(es_test[set])
-        gold, predict = validate(svc, en_test[set])
-        print("")
-        print("ES>EN-EN")
-        print_validation(gold, predict)
-
-        svc = LogResClassifier(preproc, "es")
-        svc.train(es_test[set])
-        gold, predict = validate(svc, de_test[set])
-        print("")
-        print("ES>DE-DE")
-        print_validation(gold, predict)
 
 
 if __name__ == "__main__":
@@ -364,6 +91,39 @@ if __name__ == "__main__":
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
     argparser.add_argument("--testset", type=str, default="", help="Set path of the testset used to validate. Must be given if K-Fold is off.", metavar="filepath")
     argparser.add_argument("trainset", type=str, help="Set path of the trainingsset used.")
+    argparser.add_argument("lang", type=str, help="Set Language to be used.", choices=("og", "en", "de", "es"))
 
     args = argparser.parse_args(sys.argv[1:])
-    print(args)
+
+    kfold = args.k_fold
+    trainset_path = args.trainset
+    testset_path = args.testset
+    lang = args.lang
+    subset_size, subset_count = args.subset
+
+    if subset_size > 0 and subset_count > 0:
+        trainset = get_subsets(separate_set(load_data(trainset_path)), subset_size, subset_count)
+        testset = None
+        if kfold == 0:
+            testset = separate_set(load_data(testset_path))
+        total = []
+        for i in range(10):
+            total.append([0, 0, 0])
+        for subset in trainset:
+            res = main(lang, subset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1])
+            for i, p in enumerate(res):
+                for i2 in range(1, 3):
+                    total[i][i2] += p[i2]
+        for i in range(len(total)):
+            for i2 in range(1, 3):
+                    total[i][i2] = total[i][i2]/subset_count
+        print("\nMean result:")
+        for i, t in enumerate(total):
+            print("Prompt", i+1, ":\tkappa:", round(t[1], 3), ",\t accuracy:", round(t[2], 3))
+    else:  # No subsets used
+        trainset = separate_set(load_data(trainset_path))
+        testset = None
+        if kfold == 0:
+            testset = separate_set(load_data(testset_path))
+        main(lang, trainset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1])
+
