@@ -40,7 +40,7 @@ def print_validation(gold, predict, name1="Gold", name2="Prediction", stuff_len=
         mat[g][p] += 1
     name1 = stuff_str(name1, max(stuff_len, 4))
     print("")
-    print(name1, "|" + stuff_str(stuff_str(name2, ((stuff_len*4)+3-len(name2))/2, True), (stuff_len*4)+3)+"|")
+    print(name1, "|" + stuff_str(stuff_str(name2, ((stuff_len*4)+3+len(name2))/2, True), (stuff_len*4)+3)+"|")
     print(stuff_str("", len(name1)+1)+"|"+stuff_str("0", stuff_len)+"|"+stuff_str("1", stuff_len)+"|"+stuff_str("2", stuff_len)+"|"+stuff_str("3", stuff_len)+"|")
     for g, pre in enumerate(mat):
         s = stuff_str(str(g), len(name1)+1) + "|"
