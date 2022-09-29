@@ -29,7 +29,6 @@ def load_data(input_path: str) -> List[CrossLingualDataEntry]:
     return data
 
 
-
 def separate_set(dataset: List[CrossLingualDataEntry]):
     output = [[], [], [], [], [], [], [], [], [], []]
     for d in dataset:
@@ -37,12 +36,47 @@ def separate_set(dataset: List[CrossLingualDataEntry]):
     return output
 
 
-def get_subsets(base_set, length, count=10):
-    en_train_300 = []
+def balance_set(dataset: List[CrossLingualDataEntry]):
+    data = {}
+    for D in dataset:
+        if data.get(D.gold_score) is None:  # add new list for score
+            data[D.gold_score] = []
+        data.get(D.gold_score).append(D)
+    scores = data.keys()
+    min_len = -1
+    for s in scores:
+        l = len(data.get(s))  # count of datapoints with score s
+        if min_len > l or min_len < 0:
+            min_len = l
+    balanced_dataset = []
+    for s in scores:
+        s_set = data.get(s)[0:min_len]
+        balanced_dataset += s_set
+    return balanced_dataset
+
+
+def get_subsets(base_set, length, count=10, balance=False):
+    subsets = []
     for n in range(count):
-        en_train_300.append(base_set.copy())
-        for i, set in enumerate(en_train_300[n]):
+        subsets.append(base_set.copy())
+        for i, set in enumerate(subsets[n]):
             s = set.copy()
             random.shuffle(s)
-            en_train_300[n][i] = s[:length]
-    return en_train_300
+            if balance:
+                data = {}
+                for D in base_set:
+                    if data.get(D.gold_score) is None:  # add new list for score
+                        data[D.gold_score] = []
+                    data.get(D.gold_score).append(D)
+                scores = data.keys()
+                min_len = length//len(scores)
+                for sc in scores:
+                    l = len(data.get(sc))  # count of datapoints with score s
+                    if min_len > l:
+                        min_len = l
+                s = []
+                for sc in scores:
+                    s_set = data.get(sc)[0:min_len]
+                    s += s_set
+            subsets[n][i] = s[:length]
+    return subsets
