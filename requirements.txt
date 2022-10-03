@@ -8,3 +8,5 @@ torch==1.11.0
 keras==2.9.0
 scikit-learn==1.1.1
 matplotlib==3.5.2
+pandas==1.2.1
+transformers==4.22.2

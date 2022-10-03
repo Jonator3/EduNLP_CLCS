@@ -18,6 +18,16 @@ class CrossLingualDataEntry(object):
     def __str__(self):
         return f"CLDE: {self.id} in set {self.set}: {self.gold_score}"
 
+    def get_text(self, lang="og"):
+        if lang == "og":
+            return self.og_text
+        elif lang == "de":
+            return self.de_text
+        elif lang == "en":
+            return self.en_text
+        elif lang == "es":
+            return self.es_text
+
 
 def load_data(input_path: str) -> List[CrossLingualDataEntry]:
     data = []
