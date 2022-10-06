@@ -71,13 +71,7 @@ class LogResClassifier(object):
             return [], []
 
     def __create_features(self, data: List[CrossLingualDataEntry]):
-        langgraber = lambda x: (x.og_text, x.lang)
-        if self.lang == "en":
-            langgraber = lambda x: (x.en_text, "en")
-        if self.lang == "de":
-            langgraber = lambda x: (x.de_text, "de")
-        if self.lang == "es":
-            langgraber = lambda x: (x.es_text, "es")
+        langgraber = get_langgraber(self.lang)
 
         count_matrix = self.vocab.transform(
             [preprocessing.compose(*self.preprocessing)(*langgraber(data_entry)) for data_entry in data])

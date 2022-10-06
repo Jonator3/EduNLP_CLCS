@@ -90,3 +90,14 @@ def get_subsets(base_set, length, count=10, balance=False):
                     s += s_set
             subsets[n][i] = s[:length]
     return subsets
+
+
+def get_langgraber(lang):
+    langgraber = lambda x: (x.og_text, x.lang)
+    if lang == "en":
+        langgraber = lambda x: (x.en_text, "en")
+    if lang == "de":
+        langgraber = lambda x: (x.de_text, "de")
+    if lang == "es":
+        langgraber = lambda x: (x.es_text, "es")
+    return langgraber
