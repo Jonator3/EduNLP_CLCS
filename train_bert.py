@@ -80,7 +80,7 @@ def train(df_train, input_col, target_cols):
     weight_decay = 0.01
     n_folds = 10
 
-    bert = 'bert-base-uncased'
+    bert = 'bert-base-multilingual-uncased'
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
