@@ -8,7 +8,7 @@ from data import *
 import train_bert
 
 
-def prepare_data(dataset: List[CrossLingualDataEntry], lang="og", preprocessing=[]):
+def prepare_data(dataset: List[CrossLingualDataEntry], lang="og", preprocessing=[]):  # TODO make this useless
     langgraber = get_langgraber(lang)
 
     data = {}
@@ -27,7 +27,7 @@ class BertClassifier(object):
         self.tokenizer = None
         self.lang = lang
 
-    def train(self, trainingset, kfold=0, verbose=False):
+    def train(self, trainingset, kfold=0, verbose=False):  # TODO generalize for use with pandas
 
         if kfold > 0:
             gold = []
@@ -55,6 +55,6 @@ class BertClassifier(object):
             self.model, self.tokenizer = train_bert.train(prepare_data(trainingset, self.lang, self.preprocessing), "Text", "score")
             return [], []
 
-    def predict(self, data: CrossLingualDataEntry) -> int:
-        return train_bert.predict()  # TODO
+    def predict(self, data: CrossLingualDataEntry) -> int:  # TODO generalize for use with pandas
+        return train_bert.predict()  # TODO - make the model predict something
 

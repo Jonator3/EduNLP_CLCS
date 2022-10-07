@@ -4,7 +4,7 @@ import sys
 from sklearn.metrics import accuracy_score, cohen_kappa_score
 
 import preprocessing
-from data import *
+from data import *  # TODO make nicer import (no *)
 from log_res import LogResClassifier
 
 
@@ -32,7 +32,7 @@ def stuff_str(s, l, attach_left=False, stuff_char=" "):
     return s
 
 
-def make_validation_table(gold, predict):
+def make_validation_table(gold, predict):  # TODO replace with sklearn.metrics function
     mat = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     for i in range(len(gold)):
         g = gold[i]
@@ -95,6 +95,8 @@ if __name__ == "__main__":
     #  main(ignore_en_only_prompt=True, subset_passes=15, preproc=[preprocessing.lower])
     argparser = argparse.ArgumentParser()
 
+    # TODO add arguments to generalize Datastructure of the Input, aka tell pandas how to read the Input-File.
+    # TODO add arguments for selection of preprocessing.
     argparser.add_argument("--k-fold", type=int, default=0, help="Set ratio for K-Fold. 0 will be no K-Fold.")
     argparser.add_argument("--balance", type=bool, default=False, help="Enable balancing of the trainset.")
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))

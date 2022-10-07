@@ -36,7 +36,7 @@ class LogResClassifier(object):
         self.svc = LogisticRegression(max_iter=max_iter)
         self.lang = lang
 
-    def train(self, trainingset, kfold=0, verbose=False):
+    def train(self, trainingset, kfold=0, verbose=False):  # TODO generalize for use with pandas
         if self.vocab is None:
             self.vocab = get_vocabulary(trainingset, lang=self.lang)
 
@@ -77,6 +77,6 @@ class LogResClassifier(object):
             [preprocessing.compose(*self.preprocessing)(*langgraber(data_entry)) for data_entry in data])
         return count_matrix
 
-    def predict(self, data: CrossLingualDataEntry) -> int:
+    def predict(self, data: CrossLingualDataEntry) -> int:  # TODO generalize for use with pandas
         return self.svc.predict(self.__create_features([data]))[0]
 

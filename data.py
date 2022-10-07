@@ -3,6 +3,7 @@ import random
 import csv
 
 
+# TODO rewrite Datastructure with pandas
 class CrossLingualDataEntry(object):
 
     def __init__(self, id, lang, set, gold_score, og_text, en_text, de_text, es_text):
@@ -29,7 +30,7 @@ class CrossLingualDataEntry(object):
             return self.es_text
 
 
-def load_data(input_path: str) -> List[CrossLingualDataEntry]:
+def load_data(input_path: str) -> List[CrossLingualDataEntry]:  # TODO use pandas and generalize
     data = []
     reader = csv.reader(open(input_path, "r"))
     reader.__next__()  # skip head
@@ -39,14 +40,14 @@ def load_data(input_path: str) -> List[CrossLingualDataEntry]:
     return data
 
 
-def separate_set(dataset: List[CrossLingualDataEntry]):
+def separate_set(dataset: List[CrossLingualDataEntry]):  # TODO generalize for use with pandas
     output = [[], [], [], [], [], [], [], [], [], []]
     for d in dataset:
         output[d.set - 1].append(d)
     return output
 
 
-def balance_set(dataset: List[CrossLingualDataEntry]):
+def balance_set(dataset: List[CrossLingualDataEntry]):  # TODO generalize for use with pandas
     data = {}
     for D in dataset:
         if data.get(D.gold_score) is None:  # add new list for score
@@ -65,7 +66,7 @@ def balance_set(dataset: List[CrossLingualDataEntry]):
     return balanced_dataset
 
 
-def get_subsets(base_set, length, count=10, balance=False):
+def get_subsets(base_set, length, count=10, balance=False):  # TODO generalize for use with pandas
     subsets = []
     for n in range(count):
         subsets.append(base_set.copy())
@@ -92,7 +93,7 @@ def get_subsets(base_set, length, count=10, balance=False):
     return subsets
 
 
-def get_langgraber(lang):
+def get_langgraber(lang):  # TODO rewrite for pandas
     langgraber = lambda x: (x.og_text, x.lang)
     if lang == "en":
         langgraber = lambda x: (x.en_text, "en")
