@@ -33,7 +33,7 @@ class LogResClassifier(object):
     def __init__(self, preprocessing=[], lang="en", vocabulary=None, *, max_iter=1000):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
-        self.svc = LogisticRegression(max_iter=max_iter)
+        self.svc = LogisticRegression(max_iter=max_iter) # TODO AH: use meaningful variable names, svc suggests that it is support vector classification
         self.lang = lang
 
     def train(self, trainingset, kfold=0, verbose=False):  # TODO generalize for use with pandas
@@ -71,9 +71,9 @@ class LogResClassifier(object):
             return [], []
 
     def __create_features(self, data: List[CrossLingualDataEntry]):
-        langgraber = get_langgraber(self.lang)
+        langgraber = get_langgraber(self.lang) #TODO AH: What is the semantics of that name? lang_grabber?
 
-        count_matrix = self.vocab.transform(
+        count_matrix = self.vocab.transform( # TODO AH: check whether this is really necessary or whether you can use sklearn transform
             [preprocessing.compose(*self.preprocessing)(*langgraber(data_entry)) for data_entry in data])
         return count_matrix
 

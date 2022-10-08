@@ -63,7 +63,7 @@ def print_validation(mat, kappa, acc, name1="Gold", name2="Prediction", stuff_le
 
 def main(lang, trainset, kfold=0, testset=None, name1="trainset", name2="testset", print_result=True):
     preproc = [preprocessing.lower]
-    result = [None, None, None, None, None, None, None, None, None, None]
+    result = [None, None, None, None, None, None, None, None, None, None] # TODO AH: use pandas dataframes to read data
 
     print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
 
@@ -77,8 +77,8 @@ def main(lang, trainset, kfold=0, testset=None, name1="trainset", name2="testset
             gold, predict = validate(svc, testset[prompt])
             print("")
             result[prompt] = make_validation_table(gold, predict)
-            if print_result:
-                print_validation(*result[prompt])
+            if print_result: # TODO AH: also store results into an output file in a separate folder: e.g. per experiment train data, test data, classifier, parameters, timestamp, evaluation results
+                print_validation(*result[prompt]) # TODO AH. alsonprovide an option to save (pickle) the lernt model and store the predictions of the classifier (per item: id, raw answer text, gold, pred)
         else:
             svc = LogResClassifier(preproc, lang)
             gold, predict = svc.train(trainset[prompt], kfold=kfold)
