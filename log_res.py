@@ -33,7 +33,7 @@ class LogResClassifier(object):
     def __init__(self, preprocessing=[], lang="en", vocabulary=None, *, max_iter=1000):
         self.preprocessing = preprocessing
         self.vocab = vocabulary
-        self.svc = LogisticRegression(max_iter=max_iter) # TODO AH: use meaningful variable names, svc suggests that it is support vector classification
+        self.lrc = LogisticRegression(max_iter=max_iter)
         self.lang = lang
 
     def train(self, trainingset, kfold=0, verbose=False):  # TODO generalize for use with pandas
@@ -52,10 +52,10 @@ class LogResClassifier(object):
                 y_test = [trainingset[i].gold_score for i in test_index]
 
                 # Train the model
-                self.svc.fit(X_train, y_train)  # Training the model
+                self.lrc.fit(X_train, y_train)  # Training the model
 
                 # Test model
-                predict = self.svc.predict(X_test)
+                predict = self.lrc.predict(X_test)
                 gold += y_test
                 pred += list(predict)
                 if verbose:
@@ -67,7 +67,7 @@ class LogResClassifier(object):
         else:
             count_matrix = self.__create_features(trainingset)
             y = [data_entry.gold_score for data_entry in trainingset]
-            self.svc.fit(count_matrix, y)
+            self.lrc.fit(count_matrix, y)
             return [], []
 
     def __create_features(self, data: List[CrossLingualDataEntry]):
@@ -78,5 +78,5 @@ class LogResClassifier(object):
         return count_matrix
 
     def predict(self, data: CrossLingualDataEntry) -> int:  # TODO generalize for use with pandas
-        return self.svc.predict(self.__create_features([data]))[0]
+        return self.lrc.predict(self.__create_features([data]))[0]
 

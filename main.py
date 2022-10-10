@@ -1,7 +1,7 @@
 import argparse
 import sys
 
-from sklearn.metrics import accuracy_score, cohen_kappa_score
+from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix
 
 import preprocessing
 from data import *  # TODO make nicer import (no *)
@@ -33,11 +33,7 @@ def stuff_str(s, l, attach_left=False, stuff_char=" "):
 
 
 def make_validation_table(gold, predict):  # TODO replace with sklearn.metrics function
-    mat = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-    for i in range(len(gold)):
-        g = gold[i]
-        p = predict[i]
-        mat[g][p] += 1
+    mat = confusion_matrix(gold, predict, labels=(0, 1, 2, 3))
     kappa = round(cohen_kappa_score(gold, predict, weights="quadratic"), 3)
     acc = round(accuracy_score(gold, predict), 3)
 
@@ -72,16 +68,16 @@ def main(lang, trainset, kfold=0, testset=None, name1="trainset", name2="testset
         print("\n\nPrompt:", prompt + 1)
 
         if kfold <= 0:
-            svc = LogResClassifier(preproc, lang)
-            svc.train(trainset[prompt])
-            gold, predict = validate(svc, testset[prompt])
+            classifier = LogResClassifier(preproc, lang)
+            classifier.train(trainset[prompt])
+            gold, predict = validate(classifier, testset[prompt])
             print("")
             result[prompt] = make_validation_table(gold, predict)
             if print_result: # TODO AH: also store results into an output file in a separate folder: e.g. per experiment train data, test data, classifier, parameters, timestamp, evaluation results
                 print_validation(*result[prompt]) # TODO AH. alsonprovide an option to save (pickle) the lernt model and store the predictions of the classifier (per item: id, raw answer text, gold, pred)
         else:
-            svc = LogResClassifier(preproc, lang)
-            gold, predict = svc.train(trainset[prompt], kfold=kfold)
+            classifier = LogResClassifier(preproc, lang)
+            gold, predict = classifier.train(trainset[prompt], kfold=kfold)
             print("")
             print(name1+">"+lang+"  (K-Fold="+str(kfold)+")")
             result[prompt] = make_validation_table(gold, predict)
@@ -90,13 +86,13 @@ def main(lang, trainset, kfold=0, testset=None, name1="trainset", name2="testset
     return result
 
 
-
 if __name__ == "__main__":
-    #  main(ignore_en_only_prompt=True, subset_passes=15, preproc=[preprocessing.lower])
     argparser = argparse.ArgumentParser()
 
     # TODO add arguments to generalize Datastructure of the Input, aka tell pandas how to read the Input-File.
     # TODO add arguments for selection of preprocessing.
+    # TODO add arguments to save result into File.
+    # TODO add arguments to save Model via Pickle.
     argparser.add_argument("--k-fold", type=int, default=0, help="Set ratio for K-Fold. 0 will be no K-Fold.")
     argparser.add_argument("--balance", type=bool, default=False, help="Enable balancing of the trainset.")
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
