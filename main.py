@@ -32,7 +32,7 @@ def stuff_str(s, l, attach_left=False, stuff_char=" "):
     return s
 
 
-def make_validation_table(gold, predict):  # TODO replace with sklearn.metrics function
+def make_validation_table(gold, predict):
     mat = confusion_matrix(gold, predict, labels=(0, 1, 2, 3))
     kappa = round(cohen_kappa_score(gold, predict, weights="quadratic"), 3)
     acc = round(accuracy_score(gold, predict), 3)
