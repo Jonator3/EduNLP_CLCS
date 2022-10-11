@@ -23,8 +23,8 @@ def get_average(list):
     return sum(list)/len(list)
 
 
-def stuff_str(s, l, attach_left=False, stuff_char=" "):
-    while len(s) < l:
+def stuff_str(s, length, attach_left=False, stuff_char=" "):
+    while len(s) < length:
         if attach_left:
             s = stuff_char + s
         else:
@@ -59,18 +59,20 @@ def print_validation(mat, kappa, acc, name1="Gold", name2="Prediction", stuff_le
 
 def main(lang, trainset, kfold=0, testset=None, name1="trainset", name2="testset", print_result=True):
     preproc = [preprocessing.lower]
-    result = [None, None, None, None, None, None, None, None, None, None] # TODO AH: use pandas dataframes to read data
+    result = [None, None, None, None, None, None, None, None, None, None]  # TODO AH: use pandas dataframes to read data
 
     print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
 
-    for prompt in [0, 1, 9]:
+    for prompt in set([d.set for d in trainset]):
 
-        print("\n\nPrompt:", prompt + 1)
+        trainset_p = [d for d in trainset if d.set == prompt]  # filter Trainset for specific Prompt
+        testset_p = [d for d in testset if d.set == prompt]
+        print("\n\nPrompt:", prompt)
 
         if kfold <= 0:
             classifier = LogResClassifier(preproc, lang)
-            classifier.train(trainset[prompt])
-            gold, predict = validate(classifier, testset[prompt])
+            classifier.train(trainset_p)
+            gold, predict = validate(classifier, testset_p)
             print("")
             result[prompt] = make_validation_table(gold, predict)
             if print_result: # TODO AH: also store results into an output file in a separate folder: e.g. per experiment train data, test data, classifier, parameters, timestamp, evaluation results
@@ -109,10 +111,10 @@ if __name__ == "__main__":
     balance = args.balance
     subset_size, subset_count = args.subset
 
-    trainset = separate_set(load_data(trainset_path))
+    trainset = load_data(trainset_path)
     testset = None
     if kfold == 0:
-        testset = separate_set(load_data(testset_path))
+        testset = load_data(testset_path)
 
     if subset_size > 0 and subset_count > 0:
         trainset = get_subsets(trainset, subset_size, subset_count, balance)

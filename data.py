@@ -66,13 +66,13 @@ def balance_set(dataset: List[CrossLingualDataEntry]):  # TODO generalize for us
     return balanced_dataset
 
 
-def get_subsets(base_set, length, count=10, balance=False):  # TODO generalize for use with pandas
+def get_subsets(base_set: List[CrossLingualDataEntry], length, count=10, balance=False):  # TODO generalize for use with pandas
     subsets = []
     for n in range(count):
-        subsets.append(base_set.copy())
-        for i, set in enumerate(subsets[n]):
-            s = set.copy()
-            random.shuffle(s)
+        subsets.append([])
+        for prompt in set([d.set for d in base_set]):
+            dataset = [d for d in base_set if d.set == prompt]
+            random.shuffle(dataset)
             if balance:
                 data = {}
                 for D in base_set:
@@ -85,11 +85,11 @@ def get_subsets(base_set, length, count=10, balance=False):  # TODO generalize f
                     l = len(data.get(sc))  # count of datapoints with score s
                     if min_len > l:
                         min_len = l
-                s = []
+                dataset = []
                 for sc in scores:
-                    s_set = data.get(sc)[0:min_len]
-                    s += s_set
-            subsets[n][i] = s[:length]
+                    s = data.get(sc)[0:min_len]
+                    dataset += s
+            subsets[n] += dataset[:length]
     return subsets
 
 
