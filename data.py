@@ -1,104 +1,56 @@
+
 from typing import List
-import random
 import csv
+import pandas as pd
 
 
-# TODO rewrite Datastructure with pandas
-class CrossLingualDataEntry(object):
-
-    def __init__(self, id, lang, set, gold_score, og_text, en_text, de_text, es_text):
-        self.id = id
-        self.lang = lang
-        self.set = int(set)
-        self.gold_score = int(gold_score)
-        self.og_text = og_text
-        self.en_text = en_text
-        self.de_text = de_text
-        self.es_text = es_text
-
-    def __str__(self):
-        return f"CLDE: {self.id} in set {self.set}: {self.gold_score}"
-
-    def get_text(self, lang="og"):
-        if lang == "og":
-            return self.og_text
-        elif lang == "de":
-            return self.de_text
-        elif lang == "en":
-            return self.en_text
-        elif lang == "es":
-            return self.es_text
+def get_fitting_index(key: str, arr: List[str]) -> int:
+    if key.isdigit():
+        return int(key)
+    elif arr is None:
+        raise ValueError("can`t find colum: " + key + " without Header! -> please use colum index instead.")
+    elif arr.__contains__(key):  # look if the Key is in the Header
+        return arr.index(key)
+    elif [k.lower() for k in arr].__contains__(key.lower()):  # look if the Key is in the Header, ignoring upper case.
+        return [k.lower() for k in arr].index(key.lower())
+    else:  # there is no entry for the Key.
+        raise ValueError("colum: " + key + " not found!")
 
 
-def load_data(input_path: str) -> List[CrossLingualDataEntry]:  # TODO use pandas and generalize
-    data = []
+def load_data(input_path: str, id_col="id", prompt_col="prompt", score_col="score", text_col="text", has_head=True) -> pd.DataFrame:
     reader = csv.reader(open(input_path, "r"))
-    reader.__next__()  # skip head
-    for row in reader:
-        entry = CrossLingualDataEntry(row[0], row[4], row[1], row[2], row[3], row[5], row[6], row[7])
-        data.append(entry)
+    head = None
+    if has_head:
+        head = reader.__next__()
+    id_index = get_fitting_index(id_col, head)
+    prompt_index = get_fitting_index(prompt_col, head)
+    score_index = get_fitting_index(score_col, head)
+    text_index = get_fitting_index(text_col, head)
+
+    data = [row for row in reader]  # read the file
+    data = [(d[id_index], d[prompt_index], d[score_index], d[text_index]) for d in data]  # filter columns
+    data = pd.DataFrame.from_records(data, columns=['id', 'prompt', 'score', 'text'])  # make pandas.DataFrame
+
     return data
 
 
-def separate_set(dataset: List[CrossLingualDataEntry]):  # TODO generalize for use with pandas
-    output = [[], [], [], [], [], [], [], [], [], []]
-    for d in dataset:
-        output[d.set - 1].append(d)
-    return output
+def balance_set(dataset: pd.DataFrame) -> pd.DataFrame:
+    scores = dataset["score"].drop_duplicates().reset_index(drop=True)
+    min_len = min(*[c for c in dataset["score"].value_counts()])
+
+    #  This will reduce the count of Entry`s with Score X to the highest number so that all Scores have the same count.
+    return pd.concat([D[D.index < min_len] for D in [dataset[dataset["score"] == S] for S in scores]], ignore_index=True)
 
 
-def balance_set(dataset: List[CrossLingualDataEntry]):  # TODO generalize for use with pandas
-    data = {}
-    for D in dataset:
-        if data.get(D.gold_score) is None:  # add new list for score
-            data[D.gold_score] = []
-        data.get(D.gold_score).append(D)
-    scores = data.keys()
-    min_len = -1
-    for s in scores:
-        l = len(data.get(s))  # count of datapoints with score s
-        if min_len > l or min_len < 0:
-            min_len = l
-    balanced_dataset = []
-    for s in scores:
-        s_set = data.get(s)[0:min_len]
-        balanced_dataset += s_set
-    return balanced_dataset
-
-
-def get_subsets(base_set: List[CrossLingualDataEntry], length, count=10, balance=False):  # TODO generalize for use with pandas
+def get_subsets(base_set: pd.DataFrame, length: int, count=10, balance=False) -> List[pd.DataFrame]:
     subsets = []
     for n in range(count):
-        subsets.append([])
-        for prompt in set([d.set for d in base_set]):
-            dataset = [d for d in base_set if d.set == prompt]
-            random.shuffle(dataset)
+        subset = []
+        for prompt in base_set["prompt"].drop_duplicates().reset_index(drop=True):
+            dataset = base_set[base_set["prompt"] == prompt]  # filter for Prompt
+            dataset = dataset.sample(frac=1).reset_index(drop=True)  # shuffle Dataset
             if balance:
-                data = {}
-                for D in base_set:
-                    if data.get(D.gold_score) is None:  # add new list for score
-                        data[D.gold_score] = []
-                    data.get(D.gold_score).append(D)
-                scores = data.keys()
-                min_len = length//len(scores)
-                for sc in scores:
-                    l = len(data.get(sc))  # count of datapoints with score s
-                    if min_len > l:
-                        min_len = l
-                dataset = []
-                for sc in scores:
-                    s = data.get(sc)[0:min_len]
-                    dataset += s
-            subsets[n] += dataset[:length]
+                dataset = balance_set(dataset)
+            subset.append(dataset[dataset.index < length])
+        subsets.append(pd.concat(subset, ignore_index=True))
     return subsets
-
-
-def get_langgraber(lang):  # TODO rewrite for pandas
-    langgraber = lambda x: (x.og_text, x.lang)
-    if lang == "en":
-        langgraber = lambda x: (x.en_text, "en")
-    if lang == "de":
-        langgraber = lambda x: (x.de_text, "de")
-    if lang == "es":
-        langgraber = lambda x: (x.es_text, "es")
-    return langgraber

@@ -1,7 +1,8 @@
 /CrossLingualData/
-/venv/
+/venv*
 /data/
 /deepl.auth
 /*.clcs
 /test*
 /data_transformer.py
+/results

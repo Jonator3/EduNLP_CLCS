@@ -56,5 +56,6 @@ class BertClassifier(object):
             return [], []
 
     def predict(self, data: CrossLingualDataEntry) -> int:  # TODO generalize for use with pandas
+        # TODO support multiple predictions at one call
         return train_bert.predict()  # TODO - make the model predict something
 
