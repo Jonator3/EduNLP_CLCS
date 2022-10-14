@@ -173,5 +173,8 @@ if __name__ == "__main__":
         if os.path.exists(output_path):  # if Outputfile exists, append data.
             data = pd.read_csv(output_path)
             result = pd.concat([data, result], ignore_index=True)
-        # TODO AH. alsonprovide an option to save (pickle) the lernt model and store the predictions of the classifier (per item: id, raw answer text, gold, pred)
+        # TODO AH: also provide an option to save (pickle) the learnt model and store the predictions of the classifier (per item: id, raw answer text, gold, pred)
         result.to_csv(output_path, index=False)
+        # TODO AH: timestamp for each run in result file. What happens if more than one run with the same parameter settings is executed?
+
+
