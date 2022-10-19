@@ -36,7 +36,7 @@ class LogResClassifier(object):
             Y = [s for s in trainingset["score"]]
             kf = KFold(n_splits=kfold, shuffle=True)
             i = 1
-            for train_index, test_index in kf.split(trainingset):  # TODO make the train-test split work
+            for train_index, test_index in kf.split(trainingset):
                 X_train = self.__create_features([X[i] for i in train_index])
                 X_test = self.__create_features([X[i] for i in test_index])
                 y_train = [Y[i] for i in train_index]
