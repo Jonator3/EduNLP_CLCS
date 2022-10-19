@@ -56,7 +56,8 @@ def print_validation(mat, kappa, acc, name1="Gold", name2="Prediction", stuff_le
 
 
 def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True):
-    print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
+    if print_result:
+        print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
     prompts = trainset["prompt"].drop_duplicates().reset_index(drop=True)
     result = {
         "Model": ["LogRes"],  # TODO change for Bert
@@ -146,7 +147,8 @@ if __name__ == "__main__":
     if subset_size > 0 and subset_count > 0:
         trainset = get_subsets(trainset, subset_size, subset_count, balance)
         results = []
-        for subset in trainset:
+        for i, subset in enumerate(trainset):
+            print("\t", i, "/", len(trainset))
             res = main(lang, subset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], print_result=False)
             results.append(res)
         results = pd.concat(results, ignore_index=True)
@@ -156,9 +158,12 @@ if __name__ == "__main__":
             values = [v for v in results[key]]
             if key.startswith("QWK"):
                 mean_val = sum(values)/len(values)
-                mean[key] = mean_val
+                mean[key] = [mean_val]
+                print(key, "=", mean_val)
+            elif key == "trainset":
+                mean[key] = [values[0] + "_subsets"]
             else:
-                mean[key] = values[0]
+                mean[key] = [values[0]]
         mean = pd.DataFrame(mean)
         print(mean)
         result = mean
