@@ -1,8 +1,7 @@
 import argparse
 import os.path
 import sys
-import time
-import traceback
+from datetime import datetime
 
 from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix
 
@@ -70,31 +69,34 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
     for prompt in prompts:
 
         trainset_p = trainset[trainset["prompt"] == prompt]  # filter Trainset for specific Prompt
-        print("\n\nPrompt:", prompt)
+        if print_result:
+            print("\n\nPrompt:", prompt)
 
         if kfold <= 0:
             testset_p = testset[testset["prompt"] == prompt]
             classifier = LogResClassifier(preproc)
             classifier.train(trainset_p)
             gold, predict = validate(classifier, testset_p)
-            print("")
             res = make_validation_table(gold, predict)
             result["QWK_"+prompt] = [res[1]]
             if print_result:
+                print("")
                 print_validation(*res)
         else:
             classifier = LogResClassifier(preproc)
             gold, predict = classifier.train(trainset_p, kfold=kfold)
-            print("")
-            print(name1+">"+lang+"  (K-Fold="+str(kfold)+")")
             res = make_validation_table(gold, predict)
             result["QWK_"+prompt] = [res[1]]
             if print_result:
+                print("")
+                print(name1+">"+lang+"  (K-Fold="+str(kfold)+")")
+                print("")
                 print_validation(*res)
     qwk = 0.0
     for prompt in prompts:
         qwk += result.get("QWK_"+prompt)[0]
     result["QWK_Mean"] = [round(qwk / len(prompts), 3)]
+    result["Timestamp"] = [datetime.now().strftime("%Y:%m:%d-%H:%M")]
     return pd.DataFrame(result)
 
 
@@ -175,6 +177,5 @@ if __name__ == "__main__":
             result = pd.concat([data, result], ignore_index=True)
         # TODO AH: also provide an option to save (pickle) the learnt model and store the predictions of the classifier (per item: id, raw answer text, gold, pred)
         result.to_csv(output_path, index=False)
-        # TODO AH: timestamp for each run in result file. What happens if more than one run with the same parameter settings is executed?
 
 

@@ -32,14 +32,15 @@ class LogResClassifier(object):
         if kfold > 0:
             gold = []
             pred = []
+            X = [t for t in trainingset["text"]]
+            Y = [s for s in trainingset["score"]]
             kf = KFold(n_splits=kfold, shuffle=True)
             i = 1
-            for train_index, test_index in kf.split(trainingset):
-                trainingset = trainingset.reset_index()  # TODO make the train-test split work
-                X_train = self.__create_features([text for text in trainingset[train_index.__contains__(trainingset["index"])]["text"]])
-                X_test = self.__create_features([text for text in trainingset[test_index.__contains__(trainingset["index"])]["text"]])
-                y_train = [s for s in trainingset[train_index.__contains__(trainingset["index"])]["score"]]
-                y_test = [s for s in trainingset[test_index.__contains__(trainingset["index"])]["score"]]
+            for train_index, test_index in kf.split(trainingset):  # TODO make the train-test split work
+                X_train = self.__create_features([X[i] for i in train_index])
+                X_test = self.__create_features([X[i] for i in test_index])
+                y_train = [Y[i] for i in train_index]
+                y_test = [Y[i] for i in test_index]
 
                 # Train the model
                 self.lrc.fit(X_train, y_train)  # Training the model
