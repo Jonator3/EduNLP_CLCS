@@ -1,5 +1,7 @@
 import argparse
+import math
 import os.path
+import pickle
 import sys
 from datetime import datetime
 
@@ -55,7 +57,7 @@ def print_validation(mat, kappa, acc, name1="Gold", name2="Prediction", stuff_le
     print("")
 
 
-def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True):
+def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True, save_model=None):
     if print_result:
         print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
     prompts = trainset["prompt"].drop_duplicates().reset_index(drop=True)
@@ -73,9 +75,9 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
         if print_result:
             print("\n\nPrompt:", prompt)
 
+        classifier = LogResClassifier(preproc)
         if kfold <= 0:
             testset_p = testset[testset["prompt"] == prompt]
-            classifier = LogResClassifier(preproc)
             classifier.train(trainset_p)
             gold, predict = validate(classifier, testset_p)
             res = make_validation_table(gold, predict)
@@ -84,7 +86,6 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
                 print("")
                 print_validation(*res)
         else:
-            classifier = LogResClassifier(preproc)
             gold, predict = classifier.train(trainset_p, kfold=kfold)
             res = make_validation_table(gold, predict)
             result["QWK_"+prompt] = [res[1]]
@@ -93,6 +94,12 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
                 print(name1+">"+lang+"  (K-Fold="+str(kfold)+")")
                 print("")
                 print_validation(*res)
+        if save_model is not None:  # path for saving the Models is given.
+            filepath = save_model + "_" + prompt + ".pickle"
+            folder = "/".join(filepath.split("/")[:-1])
+            if not os.path.exists(folder):  # output folder does not exist
+                os.makedirs(folder)
+            pickle.dump(classifier, open(filepath, "bw+"))
     qwk = 0.0
     for prompt in prompts:
         qwk += result.get("QWK_"+prompt)[0]
@@ -104,12 +111,12 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
 
-    # TODO add arguments to save Model via Pickle.
     argparser.add_argument("--lowercase", default=False, action='store_true', help="Add lowercase to the preprocessing.")
     argparser.add_argument("--k-fold", type=int, default=0, help="Set ratio for K-Fold. 0 will be no K-Fold.")
     argparser.add_argument("--balance", default=False, action='store_true', help="Enable balancing of the trainset.")
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
     argparser.add_argument("--output", type=str, default="", help="Set path of the output CSV-File", metavar="filepath")
+    argparser.add_argument("--save_model", type=str, default=None, help="Enable and set path for saving the Models via Pickle.", metavar="path")
     argparser.add_argument("--testset", type=str, default="", help="Set path of the testset used to validate. Must be given if K-Fold is off.", metavar="filepath")
     argparser.add_argument("--testset_id", type=str, default="id", help="Set Colum Name or Index for the Entry ID.", metavar="colum name/index")
     argparser.add_argument("--testset_prompt", type=str, default="essayset", help="Set Colum Name or Index for the Prompt.", metavar="colum name/index")
@@ -132,6 +139,7 @@ if __name__ == "__main__":
     testset_path = args.testset
     testset_conf = (args.testset_id, args.testset_prompt, args.testset_score, args.testset_text, not args.testset_no_header)
     balance = args.balance
+    save_model = args.save_model
     lang = args.trainset_text
     subset_size, subset_count = args.subset
     preproc = []
@@ -149,7 +157,10 @@ if __name__ == "__main__":
         results = []
         for i, subset in enumerate(trainset):
             print("\t", i, "/", len(trainset))
-            res = main(lang, subset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], print_result=False)
+            sm = save_model
+            if sm is not None:
+                sm += "_" + stuff_str(str(i), math.floor(math.log10(len(trainset))), True, "0")  # add stuffed number of subset to filepath
+            res = main(lang, subset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], print_result=False, save_model=sm)
             results.append(res)
         results = pd.concat(results, ignore_index=True)
 
@@ -171,7 +182,7 @@ if __name__ == "__main__":
     else:  # No subsets used
         if balance:
             trainset = balance_set(trainset)
-        result = main(lang, trainset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1])
+        result = main(lang, trainset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], save_model=save_model)
 
     if output_path != "":  # if a path for the output is given, write to it.
         folder = "/".join(output_path.split("/")[:-1])
@@ -180,7 +191,6 @@ if __name__ == "__main__":
         if os.path.exists(output_path):  # if Outputfile exists, append data.
             data = pd.read_csv(output_path)
             result = pd.concat([data, result], ignore_index=True)
-        # TODO AH: also provide an option to save (pickle) the learnt model and store the predictions of the classifier (per item: id, raw answer text, gold, pred)
         result.to_csv(output_path, index=False)
 
 
