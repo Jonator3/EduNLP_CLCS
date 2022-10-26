@@ -20,9 +20,9 @@ def get_vocabulary(dataset: pd.DataFrame):
 
 class LogResClassifier(object):
 
-    def __init__(self, preprocessing=[], vocabulary=None, *, max_iter=1000):
+    def __init__(self, preprocessing=[], *, max_iter=1000):
         self.preprocessing = preprocessing
-        self.vocab = vocabulary
+        self.vocab = None
         self.lrc = LogisticRegression(max_iter=max_iter)
 
     def train(self, trainingset: pd.DataFrame, kfold=0, verbose=False):
@@ -63,7 +63,7 @@ class LogResClassifier(object):
 
     def __create_features(self, data: List[str]):
 
-        count_matrix = self.vocab.transform( # TODO AH: check whether this is really necessary or whether you can use sklearn transform
+        count_matrix = self.vocab.transform(  # same as sklearn.feature_extraction.text.CountVectorizer with fixed Vocabulary
             [preprocessing.compose(*self.preprocessing)(text) for text in data])
         return count_matrix
 

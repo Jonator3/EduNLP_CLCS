@@ -10,6 +10,7 @@ from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix
 import preprocessing
 from data import load_data, get_subsets, balance_set
 from log_res import LogResClassifier
+from bert import BertClassifier
 import pandas as pd
 
 
@@ -57,12 +58,18 @@ def print_validation(mat, kappa, acc, name1="Gold", name2="Prediction", stuff_le
     print("")
 
 
-def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True, save_model=None):
+Classifier_Models = {
+    "logres": LogResClassifier,
+    "bert": BertClassifier
+}
+
+
+def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True, save_model=None, model="logres"):
     if print_result:
         print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
     prompts = trainset["prompt"].drop_duplicates().reset_index(drop=True)
     result = {
-        "Model": ["LogRes"],  # TODO change for Bert
+        "Model": [model],
         "trainset": [name1],
         "train_col": [lang],
         "testset": [name2],
@@ -75,7 +82,7 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
         if print_result:
             print("\n\nPrompt:", prompt)
 
-        classifier = LogResClassifier(preproc)
+        classifier = Classifier_Models.get(model)(preproc)  # Make Instance of Classifier Model of choose.
         if kfold <= 0:
             testset_p = testset[testset["prompt"] == prompt]
             classifier.train(trainset_p)
