@@ -55,7 +55,7 @@ def predict(model, tokenizer, text):
         "text": [text]
     }
     dataset = pd.DataFrame(data)
-    labels = dataset["text"]#.unique()
+    labels = list(dataset["text"])#.unique()
     labels.sort()
     l2id = {label: i for i, label in enumerate(labels)}
     test_set = generate_train_test_dataset(dataset, dataset.index, "text", "score", l2id, tokenizer)
@@ -99,7 +99,7 @@ def train(df_train, input_col, target_col):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    labels = df_train[target_col]#.unique()
+    labels = list(df_train[target_col])#.unique()
     labels.sort()
     label2id = {label: i for i, label in enumerate(labels)}
     weigh_classes = np.all(df_train[target_col].value_counts() > 0)
