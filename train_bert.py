@@ -39,10 +39,10 @@ def load_bert_model(bert, device, labels):
     tokenizer = AutoTokenizer.from_pretrained(bert)
     model = AutoModelForSequenceClassification.from_pretrained(bert).to(device)
 
-    if len(labels) > 2:
-        model.config.num_labels = len(labels)
+    if labels.size > 2:
+        model.config.num_labels = labels.size
         model.classifier = Linear(in_features=model.config.hidden_size,
-                                  out_features=len(labels),
+                                  out_features=labels.size,
                                   bias=True).to(device)
 
     return model, tokenizer
@@ -55,7 +55,7 @@ def predict(model, tokenizer, text):
         "text": [text]
     }
     dataset = pd.DataFrame(data)
-    labels = list(dataset["text"])#.unique()
+    labels = dataset["text"].unique()
     labels.sort()
     l2id = {label: i for i, label in enumerate(labels)}
     test_set = generate_train_test_dataset(dataset, dataset.index, "text", "score", l2id, tokenizer)
@@ -99,7 +99,7 @@ def train(df_train, input_col, target_col):
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    labels = list(df_train[target_col])#.unique()
+    labels = df_train[target_col].unique()
     labels.sort()
     label2id = {label: i for i, label in enumerate(labels)}
     weigh_classes = np.all(df_train[target_col].value_counts() > 0)
