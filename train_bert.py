@@ -39,10 +39,10 @@ def load_bert_model(bert, device, labels):
     tokenizer = AutoTokenizer.from_pretrained(bert)
     model = AutoModelForSequenceClassification.from_pretrained(bert).to(device)
 
-    if labels.size > 2:
-        model.config.num_labels = labels.size
+    if len(labels) > 2:
+        model.config.num_labels = len(labels)
         model.classifier = Linear(in_features=model.config.hidden_size,
-                                  out_features=labels.size,
+                                  out_features=len(labels),
                                   bias=True).to(device)
 
     return model, tokenizer
