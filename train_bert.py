@@ -58,7 +58,7 @@ def predict(model, tokenizer, text):
     labels = dataset["text"].unique()
     labels.sort()
     l2id = {label: i for i, label in enumerate(labels)}
-    test_set = generate_train_test_dataset(dataset, dataset["index"], "text", "score", l2id, tokenizer)
+    test_set = generate_train_test_dataset(dataset, dataset.index, "text", "score", l2id, tokenizer)
     with torch.no_grad():
         y_predicted = []
 
@@ -105,7 +105,7 @@ def train(df_train, input_col, target_col):
     weigh_classes = np.all(df_train[target_col].value_counts() > 0)
 
     df = df_train
-    train_idx = df["index"]
+    train_idx = df.index
 
     if weigh_classes:
         y = df.loc[df.index[train_idx], target_col].values
