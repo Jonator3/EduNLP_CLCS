@@ -119,6 +119,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
 
     argparser.add_argument("--lowercase", default=False, action='store_true', help="Add lowercase to the preprocessing.")
+    argparser.add_argument("--classifier", type=str, default="logres", help="Classifiermodel to be used.", metavar="model", choices=["logres", "bert"])
     argparser.add_argument("--k-fold", type=int, default=0, help="Set ratio for K-Fold. 0 will be no K-Fold.")
     argparser.add_argument("--balance", default=False, action='store_true', help="Enable balancing of the trainset.")
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
@@ -147,6 +148,7 @@ if __name__ == "__main__":
     testset_conf = (args.testset_id, args.testset_prompt, args.testset_score, args.testset_text, not args.testset_no_header)
     balance = args.balance
     save_model = args.save_model
+    model = args.classifier
     lang = args.trainset_text
     subset_size, subset_count = args.subset
     preproc = []
@@ -167,7 +169,7 @@ if __name__ == "__main__":
             sm = save_model
             if sm is not None:
                 sm += "_" + stuff_str(str(i), math.floor(math.log10(len(trainset))), True, "0")  # add stuffed number of subset to filepath
-            res = main(lang, subset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], print_result=False, save_model=sm)
+            res = main(lang, subset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], print_result=False, save_model=sm, model=model)
             results.append(res)
         results = pd.concat(results, ignore_index=True)
 
@@ -189,7 +191,7 @@ if __name__ == "__main__":
     else:  # No subsets used
         if balance:
             trainset = balance_set(trainset)
-        result = main(lang, trainset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], save_model=save_model)
+        result = main(lang, trainset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], save_model=save_model, model=model)
 
     if output_path != "":  # if a path for the output is given, write to it.
         folder = "/".join(output_path.split("/")[:-1])
