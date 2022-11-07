@@ -22,6 +22,8 @@ class BertClassifier(object):
             i = 1
             for _, test_index in kf.split(trainingset):  # All Indexes that are not in test will be used in train
                 (_, train_df), (_, test_df) = trainingset.groupby(lambda d_i: test_index.__contains__(d_i))
+                train_df = train_df.reset_index(drop=True)
+                test_df = test_df.reset_index(drop=True)
 
                 self.model, self.tokenizer = train_bert.train(train_df, "text", "score")
 
