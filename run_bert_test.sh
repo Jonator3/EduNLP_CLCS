@@ -17,8 +17,8 @@ echo "=== Test Run - Bert ==="
 echo ""
 
 echo "Test subset"
-echo "en300 (K-Fold)"
-python main.py --classifier bert --bert_batch_size 8 --output $3 --subset 16 2 --k-fold 5 $1 --trainset_text $2
+echo "en-16 (K-Fold)"
+python main.py --classifier bert --bert_batch_size 8 --output results/bert/Test.csv --subset 16 2 --k-fold 5 data/en_train.csv --trainset_text originaltext
 
 echo "Test normal"
 echo "en_cw - en"
