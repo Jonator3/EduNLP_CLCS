@@ -10,14 +10,6 @@ from sklearn.metrics import accuracy_score, cohen_kappa_score
 import preprocessing
 
 
-def get_vocabulary(dataset: pd.DataFrame):
-    wcv = CountVectorizer(analyzer='word', ngram_range=(1, 3))
-    ccv = CountVectorizer(analyzer='char', ngram_range=(2, 5))
-    vocab = FeatureUnion([('word_ngram_counts', wcv), ('char_ngram_counts', ccv)])
-    vocab.fit([t for t in dataset["text"]])
-    return vocab
-
-
 class LogResClassifier(object):
 
     def __init__(self, preprocessing=[], *, max_iter=1000):
@@ -25,9 +17,16 @@ class LogResClassifier(object):
         self.vocab = None
         self.lrc = LogisticRegression(max_iter=max_iter)
 
+    def set_vocabulary(self, dataset: pd.DataFrame):
+        wcv = CountVectorizer(analyzer='word', ngram_range=(1, 3))
+        ccv = CountVectorizer(analyzer='char', ngram_range=(2, 5))
+        vocab = FeatureUnion([('word_ngram_counts', wcv), ('char_ngram_counts', ccv)])
+        vocab.fit([t for t in dataset["text"]])
+        self.vocab = vocab
+
     def train(self, trainingset: pd.DataFrame, kfold=0, verbose=False):
         if self.vocab is None:
-            self.vocab = get_vocabulary(trainingset)
+            self.set_vocabulary(trainingset)
 
         if kfold > 0:
             gold = []
@@ -69,4 +68,16 @@ class LogResClassifier(object):
 
     def predict(self, text: str) -> int:
         return self.lrc.predict(self.__create_features([text]))[0]
+
+
+class LogResNCharClassifier(LogResClassifier):
+
+    def __init__(self, preprocessing=[], *, max_iter=1000):
+        super().__init__(preprocessing, max_iter=max_iter)
+
+    def set_vocabulary(self, dataset: pd.DataFrame):
+        ccv = CountVectorizer(analyzer='char', ngram_range=(1, 7))
+        vocab = FeatureUnion([('char_ngram_counts', ccv)])
+        vocab.fit([t for t in dataset["text"]])
+        self.vocab = vocab
 

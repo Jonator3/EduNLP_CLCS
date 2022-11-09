@@ -85,11 +85,10 @@ def compute_class_weights(label2id, y):
     return n_samples / (n_classes * (np.bincount(pd.Series(y).map(label2id)) + 1))
 
 
-def train(df_train, input_col, target_col):
+def train(df_train, input_col, target_col, batch_size=16):
 
     np.random.seed(4669)
     epochs = 6
-    batch_size = 16
     loss_type = CrossEntropyLoss
     optimizer = AdamW
     learning_rate = 2e-5

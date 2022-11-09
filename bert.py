@@ -6,6 +6,9 @@ import preprocessing as preproc
 import train_bert
 
 
+Train_Batch_Size = 16
+
+
 class BertClassifier(object):
 
     def __init__(self, preprocessing=[], lang="en"):
@@ -25,7 +28,7 @@ class BertClassifier(object):
                 train_df = train_df.reset_index(drop=True)
                 test_df = test_df.reset_index(drop=True)
 
-                self.model, self.tokenizer = train_bert.train(train_df, "text", "score")
+                self.model, self.tokenizer = train_bert.train(train_df, "text", "score", Train_Batch_Size)
 
                 p = [self.predict(t) for t in test_df["text"]]
                 g = [s for s in test_df["score"]]
@@ -38,7 +41,7 @@ class BertClassifier(object):
                 i += 1
             return gold, predict
         else:
-            self.model, self.tokenizer = train_bert.train(trainingset, "text", "score")
+            self.model, self.tokenizer = train_bert.train(trainingset, "text", "score", Train_Batch_Size)
             return [], []
 
     def predict(self, text: str) -> int:

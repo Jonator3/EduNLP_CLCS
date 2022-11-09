@@ -7,9 +7,10 @@ from datetime import datetime
 
 from sklearn.metrics import accuracy_score, cohen_kappa_score, confusion_matrix
 
+import bert
 import preprocessing
 from data import load_data, get_subsets, balance_set
-from log_res import LogResClassifier
+from log_res import LogResClassifier, LogResNCharClassifier
 from bert import BertClassifier
 import pandas as pd
 
@@ -60,7 +61,8 @@ def print_validation(mat, kappa, acc, name1="Gold", name2="Prediction", stuff_le
 
 Classifier_Models = {
     "logres": LogResClassifier,
-    "bert": BertClassifier
+    "bert": BertClassifier,
+    "logres_char": LogResNCharClassifier
 }
 
 
@@ -119,7 +121,8 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
 
     argparser.add_argument("--lowercase", default=False, action='store_true', help="Add lowercase to the preprocessing.")
-    argparser.add_argument("--classifier", type=str, default="logres", help="Classifiermodel to be used.", metavar="model", choices=["logres", "bert"])
+    argparser.add_argument("--classifier", type=str, default="logres", help="Classifiermodel to be used.", metavar="model", choices=Classifier_Models.keys())
+    argparser.add_argument("--bert_batch_size", type=int, default=16, help="Set Batch size for training Bert", metavar="size")
     argparser.add_argument("--k-fold", type=int, default=0, help="Set ratio for K-Fold. 0 will be no K-Fold.")
     argparser.add_argument("--balance", default=False, action='store_true', help="Enable balancing of the trainset.")
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
@@ -151,6 +154,7 @@ if __name__ == "__main__":
     model = args.classifier
     lang = args.trainset_text
     subset_size, subset_count = args.subset
+    bert.Train_Batch_Size = args.bert_batch_size
     preproc = []
     if args.lowercase:
         preproc.append(preprocessing.lower)
@@ -165,7 +169,7 @@ if __name__ == "__main__":
         trainset = get_subsets(trainset, subset_size, subset_count, balance)
         results = []
         for i, subset in enumerate(trainset):
-            print("\t", i, "/", len(trainset))
+            print("Subset:\t", i, "/", len(trainset))
             sm = save_model
             if sm is not None:
                 sm += "_" + stuff_str(str(i), math.floor(math.log10(len(trainset))), True, "0")  # add stuffed number of subset to filepath
