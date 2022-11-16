@@ -54,3 +54,7 @@ def get_subsets(base_set: pd.DataFrame, length: int, count=10, balance=False) ->
             subset.append(dataset[dataset.index < length])
         subsets.append(pd.concat(subset, ignore_index=True))
     return subsets
+
+
+def get_limited_set(base_set: pd.DataFrame, length: int, balance=True) -> pd.DataFrame:
+    return get_subsets(base_set, length, 1, balance)[0]

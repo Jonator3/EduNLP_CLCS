@@ -44,6 +44,6 @@ class BertClassifier(object):
             self.model, self.tokenizer = train_bert.train(trainingset, "text", "score", Train_Batch_Size)
             return [], []
 
-    def predict(self, text: str) -> int:
-        return train_bert.predict(self.model, self.tokenizer, text)
+    def predict(self, text: str) -> str:
+        return str(train_bert.predict(self.model, self.tokenizer, text))
 
