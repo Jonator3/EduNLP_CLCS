@@ -1,3 +1,4 @@
+from typing import List
 
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, cohen_kappa_score
@@ -7,6 +8,19 @@ import train_bert
 
 
 Train_Batch_Size = 16
+
+
+def separate_df(test_index: List[int], df):
+    train_df = None
+    test_df = None
+    for v, v_df in df.groupby(lambda d_i: test_index.__contains__(d_i)):
+        if type(v) != bool:
+            raise ValueError("Impossible outcome, v should only be boolean!")
+        if v:
+            test_df = v_df
+        else:
+            train_df = v_df
+    return train_df, test_df
 
 
 class BertClassifier(object):
@@ -19,12 +33,13 @@ class BertClassifier(object):
 
     def train(self, trainingset, kfold=0, verbose=False):
         if kfold > 0:
+            trainingset = trainingset.reset_index(drop=True)  # ensure sequential index starting by 0
             gold = []
             predict = []
             kf = KFold(n_splits=kfold, shuffle=True)
             i = 1
             for _, test_index in kf.split(trainingset):  # All Indexes that are not in test will be used in train
-                (_, train_df), (_, test_df) = trainingset.groupby(lambda d_i: test_index.__contains__(d_i))
+                train_df, test_df = separate_df(test_index, trainingset)
                 train_df = train_df.reset_index(drop=True)
                 test_df = test_df.reset_index(drop=True)
 
