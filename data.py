@@ -18,7 +18,10 @@ def get_fitting_index(key: str, arr: List[str]) -> int:
 
 
 def load_data(input_path: str, id_col="id", prompt_col="prompt", score_col="score", text_col="text", has_head=True) -> pd.DataFrame:
-    reader = csv.reader(open(input_path, "r"))
+    delimiter = ","
+    if input_path.endswith(".tsv"):
+        delimiter = "\t"
+    reader = csv.reader(open(input_path, "r"), delimiter=delimiter)
     head = None
     if has_head:
         head = reader.__next__()

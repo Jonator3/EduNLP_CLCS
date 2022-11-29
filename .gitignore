@@ -1,6 +1,7 @@
 /CrossLingualData/
 /venv*
 /data/
+/*bk
 /deepl.auth
 /*.clcs
 /test*

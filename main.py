@@ -136,9 +136,9 @@ if __name__ == "__main__":
     argparser.add_argument("--testset_no_header", type=bool, default=False, help="Indicate that the CSV-File has no Header")
     argparser.add_argument("trainset", type=str, help="Set path of the trainingsset used.")
     argparser.add_argument("--trainset_id", type=str, default="id", help="Set Colum Name or Index for the Entry ID.", metavar="colum name/index")
-    argparser.add_argument("--trainset_prompt", type=str, default="essayset", help="Set Colum Name or Index for the Prompt.", metavar="colum name/index")
+    argparser.add_argument("--trainset_prompt", type=str, default="prompt", help="Set Colum Name or Index for the Prompt.", metavar="colum name/index")
     argparser.add_argument("--trainset_score", type=str, default="score", help="Set Colum Name or Index for the Goldscore.", metavar="colum name/index")
-    argparser.add_argument("--trainset_text", type=str, default="originaltext", help="Set Colum Name or Index for the Text to score.", metavar="colum name/index")
+    argparser.add_argument("--trainset_text", type=str, default="text", help="Set Colum Name or Index for the Text to score.", metavar="colum name/index")
     argparser.add_argument("--trainset_no_header", type=bool, default=False, help="Indicate that the CSV-File has no Header")
 
     args = argparser.parse_args(sys.argv[1:])
