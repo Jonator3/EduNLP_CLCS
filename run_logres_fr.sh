@@ -9,7 +9,9 @@ if [ ! -d $venv_dir ]; then
   pip install -U sentence-transformers
 fi
 source $venv_dir/bin/activate
-export PYTHONPATH=$PYTHONPATH:./python main.py --output ./result/logres/fr.csv --k-fold 10 data/fr/de/prompt_1.tsv --lowercase
+export PYTHONPATH=$PYTHONPATH:./
+
+python main.py --output ./result/logres/fr.csv --k-fold 10 data/fr/de/prompt_1.tsv --lowercase
 python main.py --output ./result/logres/fr.csv --k-fold 10 data/fr/de/prompt_2.tsv --lowercase
 python main.py --output ./result/logres/fr.csv --k-fold 10 data/fr/de/prompt_10.tsv --lowercase
 python main.py --output ./result/logres/fr.csv --k-fold 10 data/fr/en/prompt_1.tsv --lowercase
