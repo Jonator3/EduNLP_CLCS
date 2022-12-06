@@ -4,7 +4,7 @@ import re
 from nltk.corpus import wordnet
 
 
-def replace_with_nothing(text: str, replacements: list[str]):
+def replace_with_nothing(text, replacements):
     for replacement in replacements:
         text = text.replace(replacement, "")
     return text
@@ -36,7 +36,7 @@ def compose(*functions):
     return functools.reduce(lambda f, g: lambda x: f(g(x)), functions, lambda x: x)
 
 
-def remove_quotes(text: str) -> str:
+def remove_quotes(text):
     """
     Removes quotes from the given input text and returns the result.
 
@@ -46,7 +46,7 @@ def remove_quotes(text: str) -> str:
     return replace_with_nothing(text, ["`", '"', "¨", "'", "`", "´"])
 
 
-def lower(text: str) -> str:
+def lower(text):
     """
     Converts all uppercase characters from text into lowercase characters and returns it.
 
@@ -56,7 +56,7 @@ def lower(text: str) -> str:
     return text.lower()
 
 
-def remove_punctuation(text: str) -> str:
+def remove_punctuation(text):
     """
     Removes every punctuation-marks from text and returns the result.
     :param text: The input text that will be preprocessed
@@ -65,6 +65,6 @@ def remove_punctuation(text: str) -> str:
     return replace_with_nothing(text, [".", ",", "!", "?", ":", ";"])
 
 
-def remove_short_tokens(text: str) -> str:
+def remove_short_tokens(text):
 
     return re.sub(r" (.|..) ", " ", text)
