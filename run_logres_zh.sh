@@ -11,18 +11,18 @@ fi
 source $venv_dir/bin/activate
 export PYTHONPATH=$PYTHONPATH:./
 
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/de/prompt_1.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/de/prompt_2.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/de/prompt_10.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/en/prompt_1.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/en/prompt_2.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/en/prompt_10.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/es/prompt_1.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/es/prompt_2.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/es/prompt_10.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/fr/prompt_1.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/fr/prompt_2.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/fr/prompt_10.tsv --lowercase
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/zh/prompt_1.tsv --classifier logres_char
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/zh/prompt_2.tsv --classifier logres_char
-python main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/zh/prompt_10.tsv --classifier logres_char
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/de/prompt_1.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/de/prompt_2.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/de/prompt_10.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/en/prompt_1.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/en/prompt_2.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/en/prompt_10.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/es/prompt_1.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/es/prompt_2.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/es/prompt_10.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/fr/prompt_1.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/fr/prompt_2.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/fr/prompt_10.tsv --lowercase
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/zh/prompt_1.tsv --classifier logres_char
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/zh/prompt_2.tsv --classifier logres_char
+python3 main.py --output ./result/logres/zh.csv --k-fold 10 data/zh/zh/prompt_10.tsv --classifier logres_char
