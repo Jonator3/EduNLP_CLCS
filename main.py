@@ -71,9 +71,9 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
         print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
     prompts = trainset["prompt"].drop_duplicates().reset_index(drop=True)
     result = {
+        "Timestamp": [datetime.now().strftime("%Y:%m:%d-%H:%M")],
         "Model": [model],
         "trainset": [name1],
-        "train_col": [lang],
         "testset": [name2],
         "K-Fold": [kfold]
     }
@@ -109,11 +109,6 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
             if not os.path.exists(folder):  # output folder does not exist
                 os.makedirs(folder)
             pickle.dump(classifier, open(filepath, "bw+"))
-    qwk = 0.0
-    for prompt in prompts:
-        qwk += result.get("QWK_"+prompt)[0]
-    result["QWK_Mean"] = [round(qwk / len(prompts), 3)]
-    result["Timestamp"] = [datetime.now().strftime("%Y:%m:%d-%H:%M")]
     return pd.DataFrame(result)
 
 
@@ -173,7 +168,7 @@ if __name__ == "__main__":
             sm = save_model
             if sm is not None:
                 sm += "_" + stuff_str(str(i), math.floor(math.log10(len(trainset))), True, "0")  # add stuffed number of subset to filepath
-            res = main(lang, subset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], print_result=False, save_model=sm, model=model)
+            res = main(lang, subset, kfold, testset, trainset_path, testset_path, print_result=False, save_model=sm, model=model)
             results.append(res)
         results = pd.concat(results, ignore_index=True)
 
@@ -195,7 +190,7 @@ if __name__ == "__main__":
     else:  # No subsets used
         if balance:
             trainset = balance_set(trainset)
-        result = main(lang, trainset, kfold, testset, trainset_path.split("/")[-1], testset_path.split("/")[-1], save_model=save_model, model=model)
+        result = main(lang, trainset, kfold, testset, trainset_path, testset_path, save_model=save_model, model=model)
 
     if output_path != "":  # if a path for the output is given, write to it.
         folder = "/".join(output_path.split("/")[:-1])
