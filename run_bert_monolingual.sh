@@ -1,20 +1,31 @@
 #!/bin/bash
 
-echo ""
-echo "=== Monolingual - Bert ==="
-echo ""
+venv_dir=venv
+if [ ! -d $venv_dir ]; then
+  echo "Virtual environment not found. Setting up virtual environment under $venv_dir"
+  python3 -m venv $venv_dir
+  source $venv_dir/bin/activate
+  pip install -r requirements.txt
+  pip install -U sentence-transformers
+fi
+source $venv_dir/bin/activate
+export PYTHONPATH=$PYTHONPATH:./
 
-echo "en - en"
-sh run_bert_train_test.sh data/en_train.csv originaltext data/en_test.csv originaltext results/bert/Monolingual.csv
-
-echo "en300 (K-Fold)"
-sh run_bert_kfold_subset.sh data/en_train.csv originaltext results/bert/Monolingual.csv
-
-echo "en_cw (K-Fold)"
-sh run_bert_kfold.sh data/en_cw.csv originaltext results/bert/Monolingual.csv
-
-echo "de (K-Fold)"
-sh run_bert_kfold.sh data/de.csv originaltext results/bert/Monolingual.csv
-
-echo "es (K-Fold)"
-sh run_bert_kfold.sh data/es.csv originaltext results/bert/Monolingual.csv
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_en en 1
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_en en 2
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_en en 10
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_de de 1
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_de de 2
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_de de 10
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_es es 1
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_es es 2
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_es es 10
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_fr fr 1
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_fr fr 2
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_fr fr 10
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_zh zh 1
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_zh zh 2
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_zh zh 10
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig en ASAP_orig en 1
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig en ASAP_orig en 2
+python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig en ASAP_orig en 10

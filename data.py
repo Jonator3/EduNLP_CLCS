@@ -4,6 +4,9 @@ import csv
 import pandas as pd
 
 
+dataset_base_path = "./data"
+
+
 def get_fitting_index(key: str, arr: List[str]) -> int:
     if key.isdigit():
         return int(key)
@@ -17,24 +20,41 @@ def get_fitting_index(key: str, arr: List[str]) -> int:
         raise ValueError("colum: " + key + " not found!")
 
 
-def load_data(input_path: str, id_col="id", prompt_col="prompt", score_col="score", text_col="text", has_head=True) -> pd.DataFrame:
+def load_data(dataset, lang, prompt, use_test=False):
+    name = "en"
+    if dataset == "ASAP_orig":
+        name = "orig_"
+        if use_test:
+            name += "test"
+        else:
+            name += "train"
+    else:
+        name = dataset.replace("ASAP_", "")
+
+    data_path = dataset_base_path + "/" + dataset + "/" + name + "_prompt" + prompt + "_gold.tsv"
+    text_path = dataset_base_path + "/" + dataset + "/" + lang + "/" + name + "_answers_" + lang + "_prompt" + prompt + ".tsv"
+
+    df = to_df(data_path)
+    other = to_df(text_path)
+
+    df = df.join(other.set_index('id'), on='id')
+    return df
+
+
+def to_df(input_path):
     delimiter = ","
     if input_path.endswith(".tsv"):
         delimiter = "\t"
     reader = csv.reader(open(input_path, "r"), delimiter=delimiter)
-    head = None
-    if has_head:
-        head = reader.__next__()
-    id_index = get_fitting_index(id_col, head)
-    prompt_index = get_fitting_index(prompt_col, head)
-    score_index = get_fitting_index(score_col, head)
-    text_index = get_fitting_index(text_col, head)
 
-    data = [row for row in reader]  # read the file
-    data = [(d[id_index], d[prompt_index], d[score_index], d[text_index]) for d in data]  # filter columns
-    data = pd.DataFrame.from_records(data, columns=['id', 'prompt', 'score', 'text'])  # make pandas.DataFrame
+    colums = reader.__next__()
+    data = [row for row in reader]
 
-    return data
+    df = {}
+    for i, col in enumerate(colums):
+        df[col.lower()] = [d[i] for d in data]
+
+    return pd.DataFrame(df)
 
 
 def balance_set(dataset: pd.DataFrame) -> pd.DataFrame:

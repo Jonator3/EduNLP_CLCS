@@ -66,9 +66,9 @@ Classifier_Models = {
 }
 
 
-def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True, save_model=None, model="logres"):
+def main(trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True, save_model=None, model="logres"):
     if print_result:
-        print(name1 + " -> " + lang + " -- " + name2 + " -> " + lang)
+        print(name1 + " --> " + name2)
     prompts = trainset["prompt"].drop_duplicates().reset_index(drop=True)
     result = {
         "Timestamp": [datetime.now().strftime("%Y:%m:%d-%H:%M")],
@@ -100,7 +100,7 @@ def main(lang, trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, na
             result["QWK_"+prompt] = [res[1]]
             if print_result:
                 print("")
-                print(name1+">"+lang+"  (K-Fold="+str(kfold)+")")
+                print(name1+"> (K-Fold="+str(kfold)+")")
                 print("")
                 print_validation(*res)
         if save_model is not None:  # path for saving the Models is given.
@@ -123,42 +123,34 @@ if __name__ == "__main__":
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
     argparser.add_argument("--output", type=str, default="", help="Set path of the output CSV-File", metavar="filepath")
     argparser.add_argument("--save_model", type=str, default=None, help="Enable and set path for saving the Models via Pickle.", metavar="path")
-    argparser.add_argument("--testset", type=str, default="", help="Set path of the testset used to validate. Must be given if K-Fold is off.", metavar="filepath")
-    argparser.add_argument("--testset_id", type=str, default="id", help="Set Colum Name or Index for the Entry ID.", metavar="colum name/index")
-    argparser.add_argument("--testset_prompt", type=str, default="essayset", help="Set Colum Name or Index for the Prompt.", metavar="colum name/index")
-    argparser.add_argument("--testset_score", type=str, default="score", help="Set Colum Name or Index for the Goldscore.", metavar="colum name/index")
-    argparser.add_argument("--testset_text", type=str, default="originaltext", help="Set Colum Name or Index for the Text to score.", metavar="colum name/index")
-    argparser.add_argument("--testset_no_header", type=bool, default=False, help="Indicate that the CSV-File has no Header")
-    argparser.add_argument("trainset", type=str, help="Set path of the trainingsset used.")
-    argparser.add_argument("--trainset_id", type=str, default="id", help="Set Colum Name or Index for the Entry ID.", metavar="colum name/index")
-    argparser.add_argument("--trainset_prompt", type=str, default="prompt", help="Set Colum Name or Index for the Prompt.", metavar="colum name/index")
-    argparser.add_argument("--trainset_score", type=str, default="score", help="Set Colum Name or Index for the Goldscore.", metavar="colum name/index")
-    argparser.add_argument("--trainset_text", type=str, default="text", help="Set Colum Name or Index for the Text to score.", metavar="colum name/index")
-    argparser.add_argument("--trainset_no_header", type=bool, default=False, help="Indicate that the CSV-File has no Header")
+    argparser.add_argument("--testset", type=str, nargs=2, default=("ASAP_orig", "en"), help="Set testset and language used to validate. Must be given if K-Fold is off.", metavar=("Dataset", "lang"))
+    argparser.add_argument("trainset", type=str, nargs=2, default=("", ""), help="Set trainset and language.", metavar=("Dataset", "lang"))
+    argparser.add_argument("prompt", type=str, default="1", help="Prompt to be used.", metavar="prompt")
 
     args = argparser.parse_args(sys.argv[1:])
 
     kfold = args.k_fold
     output_path = args.output
-    trainset_path = args.trainset
-    trainset_conf = (args.trainset_id, args.trainset_prompt, args.trainset_score, args.trainset_text, not args.trainset_no_header)
-    testset_path = args.testset
-    testset_conf = (args.testset_id, args.testset_prompt, args.testset_score, args.testset_text, not args.testset_no_header)
+    trainset_path, train_lang = args.trainset
+    testset_path, test_lang = args.testset
+    if testset_path == "":
+        testset_path = trainset_path
+        test_lang = train_lang
+    prompt = args.prompt
     balance = args.balance
     save_model = args.save_model
     model = args.classifier
-    lang = args.trainset_text
     subset_size, subset_count = args.subset
     bert.Train_Batch_Size = args.bert_batch_size
     preproc = []
     if args.lowercase:
         preproc.append(preprocessing.lower)
 
-    trainset = load_data(trainset_path, *trainset_conf)
+    trainset = load_data(trainset_path, train_lang, prompt)
     testset = None
     result = None
     if kfold == 0:
-        testset = load_data(testset_path, *testset_conf)
+        testset = load_data(testset_path, test_lang, prompt, use_test=True)
 
     if subset_size > 0 and subset_count > 0:
         trainset = get_subsets(trainset, subset_size, subset_count, balance)
@@ -168,7 +160,7 @@ if __name__ == "__main__":
             sm = save_model
             if sm is not None:
                 sm += "_" + stuff_str(str(i), math.floor(math.log10(len(trainset))), True, "0")  # add stuffed number of subset to filepath
-            res = main(lang, subset, kfold, testset, trainset_path, testset_path, print_result=False, save_model=sm, model=model)
+            res = main(subset, kfold, testset, trainset_path + "-" + train_lang, testset_path + "-" + test_lang, print_result=False, save_model=sm, model=model)
             results.append(res)
         results = pd.concat(results, ignore_index=True)
 
@@ -190,7 +182,7 @@ if __name__ == "__main__":
     else:  # No subsets used
         if balance:
             trainset = balance_set(trainset)
-        result = main(lang, trainset, kfold, testset, trainset_path, testset_path, save_model=save_model, model=model)
+        result = main(trainset, kfold, testset, trainset_path, testset_path, save_model=save_model, model=model)
 
     if output_path != "":  # if a path for the output is given, write to it.
         folder = "/".join(output_path.split("/")[:-1])

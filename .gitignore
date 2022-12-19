@@ -2,8 +2,10 @@
 /venv*
 /data/
 /*bk
+/Data_For_Publication
 /deepl.auth
 /*.clcs
 /test*
 /data_transformer.py
+/result
 /results

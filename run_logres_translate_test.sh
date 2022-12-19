@@ -1,35 +1,103 @@
 #!/bin/bash
 
-echo ""
-echo "=== Translate Test - Logistic Regresion ==="
-echo ""
+venv_dir=venv
+if [ ! -d $venv_dir ]; then
+  echo "Virtual environment not found. Setting up virtual environment under $venv_dir"
+  python3 -m venv $venv_dir
+  source $venv_dir/bin/activate
+  pip install -r requirements.txt
+  pip install -U sentence-transformers
+fi
+source $venv_dir/bin/activate
+export PYTHONPATH=$PYTHONPATH:./
 
-echo "en - de > en"
-sh run_logres_train_test.sh data/en_train.csv englishtext data/de.csv englishtext results/logres/Translate_Test.csv
-
-echo "en - es > en"
-sh run_logres_train_test.sh data/en_train.csv englishtext data/es.csv englishtext results/logres/Translate_Test.csv
-
-echo "en300 - de > en"
-sh run_logres_train_test_subset.sh data/en_train.csv englishtext data/de.csv englishtext results/logres/Translate_Test.csv
-
-echo "en300 - es > en"
-sh run_logres_train_test_subset.sh data/en_train.csv englishtext data/es.csv englishtext results/logres/Translate_Test.csv
-
-echo "en_cw - de > en"
-sh run_logres_train_test.sh data/en_cw.csv englishtext data/de.csv englishtext results/logres/Translate_Test.csv
-
-echo "en_cw - es > en"
-sh run_logres_train_test.sh data/en_cw.csv englishtext data/es.csv englishtext results/logres/Translate_Test.csv
-
-echo "de - en > de"
-sh run_logres_train_test.sh data/de.csv germantext data/en_test.csv germantext results/logres/Translate_Test.csv
-
-echo "de - es > de"
-sh run_logres_train_test.sh data/de.csv germantext data/es.csv germantext results/logres/Translate_Test.csv
-
-echo "es - en > es"
-sh run_logres_train_test.sh data/es.csv spanishtext data/en_test.csv spanishtext results/logres/Translate_Test.csv
-
-echo "es - de > es"
-sh run_logres_train_test.sh data/es.csv spanishtext data/de.csv spanishtext results/logres/Translate_Test.csv
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de en ASAP_en en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de en ASAP_en en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de en ASAP_en en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es en ASAP_en en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es en ASAP_en en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es en ASAP_en en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr en ASAP_en en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr en ASAP_en en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr en ASAP_en en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh en ASAP_en en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh en ASAP_en en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh en ASAP_en en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig en ASAP_en en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig en ASAP_en en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig en ASAP_en en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en de ASAP_de de 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en de ASAP_de de 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en de ASAP_de de 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es de ASAP_de de 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es de ASAP_de de 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es de ASAP_de de 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr de ASAP_de de 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr de ASAP_de de 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr de ASAP_de de 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh de ASAP_de de 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh de ASAP_de de 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh de ASAP_de de 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig de ASAP_de de 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig de ASAP_de de 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig de ASAP_de de 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en es ASAP_es es 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en es ASAP_es es 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en es ASAP_es es 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de es ASAP_es es 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de es ASAP_es es 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de es ASAP_es es 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr es ASAP_es es 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr es ASAP_es es 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr es ASAP_es es 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh es ASAP_es es 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh es ASAP_es es 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh es ASAP_es es 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig es ASAP_es es 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig es ASAP_es es 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig es ASAP_es es 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en fr ASAP_fr fr 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en fr ASAP_fr fr 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en fr ASAP_fr fr 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de fr ASAP_fr fr 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de fr ASAP_fr fr 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de fr ASAP_fr fr 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es fr ASAP_fr fr 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es fr ASAP_fr fr 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es fr ASAP_fr fr 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh fr ASAP_fr fr 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh fr ASAP_fr fr 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh fr ASAP_fr fr 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig fr ASAP_fr fr 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig fr ASAP_fr fr 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig fr ASAP_fr fr 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en zh ASAP_zh zh 1 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en zh ASAP_zh zh 2 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en zh ASAP_zh zh 10 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de zh ASAP_zh zh 1 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de zh ASAP_zh zh 2 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de zh ASAP_zh zh 10 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es zh ASAP_zh zh 1 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es zh ASAP_zh zh 2 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es zh ASAP_zh zh 10 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr zh ASAP_zh zh 1 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr zh ASAP_zh zh 2 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr zh ASAP_zh zh 10 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig zh ASAP_zh zh 1 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig zh ASAP_zh zh 2 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_orig zh ASAP_zh zh 10 --classifier logres_char
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en en ASAP_orig en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en en ASAP_orig en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_en en ASAP_orig en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de en ASAP_orig en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de en ASAP_orig en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_de en ASAP_orig en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es en ASAP_orig en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es en ASAP_orig en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_es en ASAP_orig en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr en ASAP_orig en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr en ASAP_orig en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_fr en ASAP_orig en 10 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh en ASAP_orig en 1 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh en ASAP_orig en 2 --lowercase
+python3 main.py --output ./result/logres/translate_test.csv --testset ASAP_zh en ASAP_orig en 10 --lowercase
