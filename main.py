@@ -123,7 +123,7 @@ if __name__ == "__main__":
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
     argparser.add_argument("--output", type=str, default="", help="Set path of the output CSV-File", metavar="filepath")
     argparser.add_argument("--save_model", type=str, default=None, help="Enable and set path for saving the Models via Pickle.", metavar="path")
-    argparser.add_argument("--testset", type=str, nargs=2, default=("ASAP_orig", "en"), help="Set testset and language used to validate. Must be given if K-Fold is off.", metavar=("Dataset", "lang"))
+    argparser.add_argument("--testset", type=str, nargs=2, default=("", ""), help="Set testset and language used to validate. Must be given if K-Fold is off.", metavar=("Dataset", "lang"))
     argparser.add_argument("trainset", type=str, nargs=2, default=("", ""), help="Set trainset and language.", metavar=("Dataset", "lang"))
     argparser.add_argument("prompt", type=str, default="1", help="Prompt to be used.", metavar="prompt")
 
