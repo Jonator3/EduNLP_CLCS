@@ -187,6 +187,7 @@ if __name__ == "__main__":
         if balance:
             trainset = balance_set(trainset)
         result = main(trainset, kfold, testset, trainset_path, train_lang, testset_path, test_lang, save_model=save_model, model=model)
+#        result = main(trainset, kfold, testset, trainset_path + "-" + train_lang, testset_path + "-" + test_lang, save_model=save_model, model=model)
 
     if output_path != "":  # if a path for the output is given, write to it.
         folder = "/".join(output_path.split("/")[:-1])
