@@ -76,7 +76,7 @@ Classifier_Models = {
 }
 
 
-def main(trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", name2="testset", preproc=[], print_result=True, save_model=None, model="logres"):
+def main(trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="trainset", lang1="train-language", name2="testset", lang2="test-language", preproc=[], print_result=True, save_model=None, model="logres"):
     if print_result:
         print(name1 + " --> " + name2)
     prompts = trainset["prompt"].drop_duplicates().reset_index(drop=True)
@@ -84,7 +84,9 @@ def main(trainset: pd.DataFrame, kfold=0, testset: pd.DataFrame = None, name1="t
         "Timestamp": [datetime.now().strftime("%Y:%m:%d-%H:%M")],
         "Model": [model],
         "trainset": [name1],
+        "train-language": [lang1],
         "testset": [name2],
+        "test-language": [lang2],
         "K-Fold": [kfold]
     }
 
@@ -172,9 +174,11 @@ if __name__ == "__main__":
             sm = save_model
             if sm is not None:
                 sm += "_" + stuff_str(str(i), math.floor(math.log10(len(trainset))), True, "0")  # add stuffed number of subset to filepath
-            res = main(subset, kfold, testset, trainset_path + "-" + train_lang, testset_path + "-" + test_lang, print_result=False, save_model=sm, model=model)
+            res = main(subset, kfold, testset, trainset_path + "-" + train_lang, train_lang, testset_path + "-" + test_lang, test_lang, print_result=False, save_model=sm, model=model)
+            print("res", res)
             results.append(res)
         results = pd.concat(results, ignore_index=True)
+        print("results", results)
 
         mean = {}
         for key in results.keys():
@@ -194,7 +198,8 @@ if __name__ == "__main__":
     else:  # No subsets used
         if balance:
             trainset = balance_set(trainset)
-        result = main(trainset, kfold, testset, trainset_path + "-" + train_lang, testset_path + "-" + test_lang, save_model=save_model, model=model)
+        result = main(trainset, kfold, testset, trainset_path, train_lang, testset_path, test_lang, save_model=save_model, model=model)
+#        result = main(trainset, kfold, testset, trainset_path + "-" + train_lang, testset_path + "-" + test_lang, save_model=save_model, model=model)
 
     if output_path != "":  # if a path for the output is given, write to it.
         folder = "/".join(output_path.split("/")[:-1])
@@ -202,7 +207,10 @@ if __name__ == "__main__":
             os.makedirs(folder)
         if os.path.exists(output_path):  # if Outputfile exists, append data.
             data = pd.read_csv(output_path)
+            #print(data)
+            #print(result)
             result = pd.concat([data, result], ignore_index=True)
+            print(result)
         result.to_csv(output_path, index=False)
 
 
