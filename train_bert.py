@@ -87,7 +87,6 @@ def compute_class_weights(label2id, y):
 
 def train(df_train, input_col, target_col, batch_size=16):
 
-    np.random.seed(4669)
     epochs = 6
     loss_type = CrossEntropyLoss
     optimizer = AdamW

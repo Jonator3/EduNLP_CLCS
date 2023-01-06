@@ -13,6 +13,16 @@ from data import load_data, get_subsets, balance_set
 from log_res import LogResClassifier, LogResNCharClassifier
 from bert import BertClassifier
 import pandas as pd
+import torch
+import random
+import numpy as np
+
+
+def seed_everything(seed):
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
 
 
 def validate(classifier, dataset: pd.DataFrame):
@@ -118,6 +128,7 @@ if __name__ == "__main__":
     argparser.add_argument("--lowercase", default=False, action='store_true', help="Add lowercase to the preprocessing.")
     argparser.add_argument("--classifier", type=str, default="logres", help="Classifiermodel to be used.", metavar="model", choices=Classifier_Models.keys())
     argparser.add_argument("--bert_batch_size", type=int, default=16, help="Set Batch size for training Bert", metavar="size")
+    argparser.add_argument("--seed", type=int, default=4669, help="Set Seed for all RNGs", metavar="seed")
     argparser.add_argument("--k-fold", type=int, default=0, help="Set ratio for K-Fold. 0 will be no K-Fold.")
     argparser.add_argument("--balance", default=False, action='store_true', help="Enable balancing of the trainset.")
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
@@ -129,6 +140,7 @@ if __name__ == "__main__":
 
     args = argparser.parse_args(sys.argv[1:])
 
+    seed_everything(args.seed)
     kfold = args.k_fold
     output_path = args.output
     trainset_path, train_lang = args.trainset
