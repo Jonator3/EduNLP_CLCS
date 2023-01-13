@@ -45,7 +45,7 @@ def to_df(input_path):
     delimiter = ","
     if input_path.endswith(".tsv"):
         delimiter = "\t"
-    reader = csv.reader(open(input_path, "r"), delimiter=delimiter)
+    reader = csv.reader(open(input_path, "r"), delimiter=delimiter, lineterminator="\n")
 
     colums = reader.__next__()
     data = [row for row in reader]
