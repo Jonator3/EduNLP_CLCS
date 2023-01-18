@@ -211,6 +211,9 @@ if __name__ == "__main__":
             #print(result)
             result = pd.concat([data, result], ignore_index=True)
             print(result)
-        result.to_csv(output_path, index=False)
+        sep = ","
+        if output_path.endswith(".tsv"):
+            sep = "\t"
+        result.to_csv(output_path, index=False, sep=sep)
 
 
