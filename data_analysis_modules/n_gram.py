@@ -81,7 +81,7 @@ def colum_rename(df, old, new):
     return df.rename(columns=map)
 
 
-def analyse(df, output_path):
+def analyse(df, output_path, do_word_token=True):
     texts = [t for t in df["text"]]
     scores = list(set([s for s in df["score"]]))
     scores.sort()
@@ -107,7 +107,7 @@ def analyse(df, output_path):
 
 
     # word token
-    if not char_only_langs.__contains__(lang):
+    if do_word_token:
         token_texts = [nltk.tokenize.word_tokenize(t) for t in texts]
         for n in range(1, 4):
             total_text = [tuple_to_bracketless_str(tup, " ") for tup in concat([list(nltk.ngrams(t, n)) for t in token_texts])]
@@ -135,7 +135,7 @@ def run():
                 os.makedirs("./result/data_analysis/" + ds + "/n-gram_count/prompt_" + prmpt + "/" + lang)
             except FileExistsError:
                 pass
-            analyse(df, "./result/data_analysis/" + ds + "/n-gram_count/prompt_" + prmpt + "/" + lang)
+            analyse(df, "./result/data_analysis/" + ds + "/n-gram_count/prompt_" + prmpt + "/" + lang, not char_only_langs.__contains__(lang))
             print(ds + "/" + lang, "prompt_" + prmpt, "done!")
 
 

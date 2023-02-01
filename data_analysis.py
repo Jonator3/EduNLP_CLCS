@@ -1,4 +1,4 @@
-from data_analysis import n_gram
+from data_analysis_modules import n_gram
 
 
 if __name__ == "__main__":
