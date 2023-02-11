@@ -138,7 +138,7 @@ if __name__ == "__main__":
     argparser.add_argument("--save_model", type=str, default=None, help="Enable and set path for saving the Models via Pickle.", metavar="path")
     argparser.add_argument("--testset", type=str, nargs=2, default=("", ""), help="Set testset and language used to validate. Must be given if K-Fold is off.", metavar=("Dataset", "lang"))
     argparser.add_argument("trainset", type=str, nargs=2, default=("", ""), help="Set trainset and language.", metavar=("Dataset", "lang"))
-    argparser.add_argument("prompt", type=str, default="1", help="Prompt to be used.", metavar="prompt")
+    argparser.add_argument("prompt", type=str, default="1", help="Prompt['s] to be used. [multiple prompts can be space separatet: '1 2 10']", metavar="prompt")
 
     args = argparser.parse_args(sys.argv[1:])
 

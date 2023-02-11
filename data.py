@@ -20,7 +20,9 @@ def get_fitting_index(key: str, arr: List[str]) -> int:
         raise ValueError("colum: " + key + " not found!")
 
 
-def load_data(dataset, lang, prompt, use_test=False):
+def load_data(dataset, lang, prompts, use_test=False):
+    total_df = None
+
     name = "en"
     if dataset == "ASAP_orig":
         name = "orig_"
@@ -31,14 +33,22 @@ def load_data(dataset, lang, prompt, use_test=False):
     else:
         name = dataset.replace("ASAP_", "")
 
-    data_path = dataset_base_path + "/" + dataset + "/" + name + "_prompt" + prompt + "_gold.tsv"
-    text_path = dataset_base_path + "/" + dataset + "/" + lang + "/" + name + "_answers_" + lang + "_prompt" + prompt + ".tsv"
+    for prompt in prompts.split(" "):
 
-    df = to_df(data_path)
-    other = to_df(text_path)
+        data_path = dataset_base_path + "/" + dataset + "/" + name + "_prompt" + prompt + "_gold.tsv"
+        text_path = dataset_base_path + "/" + dataset + "/" + lang + "/" + name + "_answers_" + lang + "_prompt" + prompt + ".tsv"
 
-    df = df.join(other.set_index('id'), on='id')
-    return df
+        df = to_df(data_path)
+        other = to_df(text_path)
+
+        df = df.join(other.set_index('id'), on='id')
+
+        if total_df is None:
+            total_df = df
+        else:
+            total_df = pd.concat([total_df, df], ignore_index=True)
+
+    return total_df
 
 
 def to_df(input_path):
