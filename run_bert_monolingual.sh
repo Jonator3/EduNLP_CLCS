@@ -11,21 +11,21 @@ fi
 source $venv_dir/bin/activate
 export PYTHONPATH=$PYTHONPATH:./
 
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_en en 1
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_en en 2
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_en en 10
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_de de 1
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_de de 2
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_de de 10
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_es es 1
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_es es 2
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_es es 10
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_fr fr 1
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_fr fr 2
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_fr fr 10
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_zh zh 1
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_zh zh 2
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_zh zh 10
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig en ASAP_orig en 1
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig en ASAP_orig en 2
-python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig en ASAP_orig en 10
+
+for LANG in en de es fr zh
+do
+  for LANG2 in en de es fr zh
+  do
+    python3 main.py --classifier bert --output ./result/bert/monolingual.csv --k-fold 10 ASAP_{$LANG} $LANG2 "1 2 10"
+  done
+done
+
+for LANG in en de es fr zh
+do
+  python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig $LANG ASAP_orig $LANG "1 2 10"
+done
+
+for LANG in en de es fr zh
+do
+  python3 main.py --classifier bert --output ./result/bert/monolingual.csv --testset ASAP_orig300 $LANG ASAP_orig300 $LANG "1 2 10"
+done
