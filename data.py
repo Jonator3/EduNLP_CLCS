@@ -7,6 +7,17 @@ import pandas as pd
 dataset_base_path = "./data"
 
 
+def apply_to_text(dataset, func):
+    data = dataset[["id", "prompt", "score"]]
+    text = [func(t) for t in dataset["text"]]
+    ids = [id for id in dataset["id"]]
+    text_df = pd.DataFrame({"id": ids, "text": text})
+
+    data = data.join(text_df.set_index('id'), on='id')
+
+    return data
+
+
 def get_fitting_index(key: str, arr: List[str]) -> int:
     if key.isdigit():
         return int(key)

@@ -3,7 +3,8 @@ from typing import List
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, cohen_kappa_score
 
-import preprocessing as preproc
+import data
+import preprocessing
 import train_bert
 
 
@@ -25,13 +26,14 @@ def separate_df(test_index: List[int], df):
 
 class BertClassifier(object):
 
-    def __init__(self, preprocessing=[], lang="en"):
-        self.preprocessing = preprocessing  # TODO apply preprocessing
+    def __init__(self, preproc=[], lang="en"):
+        self.preprocessing = preprocessing.compose(preproc)
         self.model = None
         self.tokenizer = None
         self.lang = lang
 
     def train(self, trainingset, kfold=0, verbose=False):
+        trainingset = data.apply_to_text(trainingset, self.preprocessing)
         if kfold > 0:
             trainingset = trainingset.reset_index(drop=True)  # ensure sequential index starting by 0
             gold = []

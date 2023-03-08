@@ -7,13 +7,14 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import KFold
 from sklearn.metrics import accuracy_score, cohen_kappa_score
 
+import data
 import preprocessing
 
 
 class LogResClassifier(object):
 
-    def __init__(self, preprocessing=[], *, max_iter=1000):
-        self.preprocessing = preprocessing
+    def __init__(self, preproc=[], *, max_iter=1000):
+        self.preprocessing = preprocessing.compose(preproc)
         self.vocab = None
         self.lrc = LogisticRegression(max_iter=max_iter)
 
@@ -25,6 +26,7 @@ class LogResClassifier(object):
         self.vocab = vocab
 
     def train(self, trainingset: pd.DataFrame, kfold=0, verbose=False):
+        trainingset = data.apply_to_text(trainingset, self.preprocessing)
         if self.vocab is None:
             self.set_vocabulary(trainingset)
 
