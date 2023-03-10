@@ -14,7 +14,7 @@ import preprocessing
 class LogResClassifier(object):
 
     def __init__(self, preproc=[], *, max_iter=1000):
-        self.preprocessing = preprocessing.compose(preproc)
+        self.preprocessing = preprocessing.compose(*preproc)
         self.vocab = None
         self.lrc = LogisticRegression(max_iter=max_iter)
 

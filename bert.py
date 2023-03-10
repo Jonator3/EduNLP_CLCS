@@ -27,7 +27,7 @@ def separate_df(test_index: List[int], df):
 class BertClassifier(object):
 
     def __init__(self, preproc=[], lang="en"):
-        self.preprocessing = preprocessing.compose(preproc)
+        self.preprocessing = preprocessing.compose(*preproc)
         self.model = None
         self.tokenizer = None
         self.lang = lang
