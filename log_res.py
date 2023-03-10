@@ -64,8 +64,8 @@ class LogResClassifier(object):
 
     def __create_features(self, data: List[str]):
 
-        count_matrix = self.vocab.transform(  # same as sklearn.feature_extraction.text.CountVectorizer with fixed Vocabulary
-            [preprocessing.compose(*self.preprocessing)(text) for text in data])
+        count_matrix = self.vocab.transform([text for text in data])
+        # same as sklearn.feature_extraction.text.CountVectorizer with fixed Vocabulary
         return count_matrix
 
     def predict(self, text: str) -> int:
