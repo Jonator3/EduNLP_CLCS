@@ -17,9 +17,9 @@ do
   for LANG2 in en de es fr zh
   do
     if $LANG2 == zh; then
-      python3 main.py --lowercase --output ./result/logres/monolingual.csv --k-fold 10 ASAP_{$LANG} $LANG2 "1 2 10"
+      python3 main.py --lowercase --output ./result/logres/monolingual.csv --k-fold 10 ASAP_$LANG $LANG2 "1 2 10"
     else
-      python3 main.py --classifier logres_char --output ./result/logres/monolingual.csv --k-fold 10 ASAP_{$LANG} $LANG2 "1 2 10"
+      python3 main.py --classifier logres_char --output ./result/logres/monolingual.csv --k-fold 10 ASAP_$LANG $LANG2 "1 2 10"
     fi
   done
 done
