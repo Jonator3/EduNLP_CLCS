@@ -15,6 +15,12 @@ def apply_to_text(dataset, func):
 
     data = data.join(text_df.set_index('id'), on='id')
 
+    if dataset.columns.__contains__("text2"):
+        text2 = [func(t) for t in dataset["text2"]]
+        text2_df = pd.DataFrame({"id": ids, "text2": text2})
+
+        data = data.join(text2_df.set_index('id'), on='id')
+
     return data
 
 
@@ -31,7 +37,7 @@ def get_fitting_index(key: str, arr: List[str]) -> int:
         raise ValueError("colum: " + key + " not found!")
 
 
-def load_data(dataset, lang, prompts, use_test=False):
+def load_data(dataset, lang, prompts, use_test=False, secondary_lang=None):
     total_df = None
 
     name = "en"
@@ -53,6 +59,13 @@ def load_data(dataset, lang, prompts, use_test=False):
         other = to_df(text_path)
 
         df = df.join(other.set_index('id'), on='id')
+
+        if secondary_lang is not None:
+            text_path = dataset_base_path + "/" + dataset + "/" + secondary_lang + "/" + name + "_answers_" + secondary_lang + "_prompt" + prompt + ".tsv"
+            other = to_df(text_path)
+            other = other.rename(columns={"text": "text2"})
+
+            df = df.join(other.set_index('id'), on='id')
 
         if total_df is None:
             total_df = df

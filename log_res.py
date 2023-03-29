@@ -34,12 +34,15 @@ class LogResClassifier(object):
             gold = []
             pred = []
             X = [t for t in trainingset["text"]]
+            X2 = X
+            if trainingset.columns.__contains__("text2"):  # Use Secondary Lang for Testing
+                X2 = [t for t in trainingset["text2"]]
             Y = [s for s in trainingset["score"]]
             kf = KFold(n_splits=kfold, shuffle=True)
             i = 1
             for train_index, test_index in kf.split(trainingset):
                 X_train = self.__create_features([X[i] for i in train_index])
-                X_test = self.__create_features([X[i] for i in test_index])
+                X_test = self.__create_features([X2[i] for i in test_index])
                 y_train = [Y[i] for i in train_index]
                 y_test = [Y[i] for i in test_index]
 

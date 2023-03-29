@@ -47,7 +47,11 @@ class BertClassifier(object):
 
                 self.model, self.tokenizer = train_bert.train(train_df, "text", "score", Train_Batch_Size)
 
-                p = [self.predict(t) for t in test_df["text"]]
+                p = []
+                if trainingset.columns.__contains__("text2"):
+                    p = [self.predict(t) for t in test_df["text2"]]
+                else:
+                    p = [self.predict(t) for t in test_df["text"]]
                 g = [s for s in test_df["score"]]
                 gold += g
                 predict += p

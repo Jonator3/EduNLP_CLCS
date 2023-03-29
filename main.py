@@ -132,6 +132,7 @@ if __name__ == "__main__":
     argparser.add_argument("--bert_batch_size", type=int, default=16, help="Set Batch size for training Bert", metavar="size")
     argparser.add_argument("--seed", type=int, default=4669, help="Set Seed for all RNGs", metavar="seed")
     argparser.add_argument("--k-fold", type=int, default=0, help="Set ratio for K-Fold. 0 will be no K-Fold.")
+    argparser.add_argument("--k-fold-testlang", "--kf-testlang", type=str, default=None, help="Set Test-language for K-Fold. DEF= same as train", metavar="lang")
     argparser.add_argument("--balance", default=False, action='store_true', help="Enable balancing of the trainset.")
     argparser.add_argument("--subset", type=int, nargs=2, default=(0, 0), help="Set size and count of subsets to be used. 0 will be Off.", metavar=("size", "count"))
     argparser.add_argument("--output", type=str, default="", help="Set path of the output CSV-File", metavar="filepath")
@@ -144,6 +145,7 @@ if __name__ == "__main__":
 
     seed_everything(args.seed)
     kfold = args.k_fold
+    sec_lang = args.k_fold_testlang
     output_path = args.output
     trainset_path, train_lang = args.trainset
     testset_path, test_lang = args.testset
@@ -160,7 +162,7 @@ if __name__ == "__main__":
     if args.lowercase:
         preproc.append(preprocessing.lower)
 
-    trainset = load_data(trainset_path, train_lang, prompt)
+    trainset = load_data(trainset_path, train_lang, prompt, secondary_lang=sec_lang)
     testset = None
     result = None
     if kfold == 0:
