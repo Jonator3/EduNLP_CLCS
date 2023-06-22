@@ -16,7 +16,7 @@ for LANG in en de es fr zh
 do
   for LANG2 in en de es fr zh
   do
-    if ["$LANG2" == "zh"]; then
+    if [ "$LANG2" == "zh" ]; then
       python3 main.py --lowercase --output ./result/logres/monolingual.csv --k-fold 10 ASAP_$LANG $LANG2 "1 2 10"
     else
       python3 main.py --classifier logres_char --output ./result/logres/monolingual.csv --k-fold 10 ASAP_$LANG $LANG2 "1 2 10"
@@ -26,7 +26,7 @@ done
 
 for LANG in en de es fr zh
 do
-  if ["$LANG2" == "zh"]; then
+  if [ "$LANG2" == "zh" ]; then
     python3 main.py --lowercase --output ./result/logres/monolingual.csv --testset ASAP_orig $LANG ASAP_orig $LANG "1 2 10"
   else
     python3 main.py --classifier logres_char --output ./result/logres/monolingual.csv --testset ASAP_orig $LANG ASAP_orig $LANG "1 2 10"
@@ -35,7 +35,7 @@ done
 
 for LANG in en de es fr zh
 do
-  if ["$LANG2" == "zh"]; then
+  if [ "$LANG2" == "zh" ]; then
     python3 main.py --lowercase --output ./result/logres/monolingual.csv --testset ASAP_orig300 $LANG ASAP_orig300 $LANG "1 2 10"
   else
     python3 main.py --classifier logres_char --output ./result/logres/monolingual.csv --testset ASAP_orig300 $LANG ASAP_orig300 $LANG "1 2 10"
